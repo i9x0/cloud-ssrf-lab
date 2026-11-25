@@ -81,6 +81,11 @@ $env:IMDS_MODE="optional"; $env:SSRF_GUARD="off"; $env:IAM_POLICY="overprivilege
 
 On Linux/macOS (bash) the same toggles are inline, e.g. `SSRF_GUARD=on docker compose up -d`.
 
+## Run it on a real cloud (optional)
+
+To host the whole lab on a free Oracle Cloud (OCI) ARM VM, see **[DEPLOY-oracle.md](DEPLOY-oracle.md)**.
+The lab is intentionally vulnerable, so keep it private and reach it only over an SSH tunnel.
+
 ## Results (run of 2026-11-20)
 
 | Config | Defences | SSRF payloads succeeded | Credentials stolen | Records exfiltrated | Legit requests OK | Median latency |
