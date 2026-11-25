@@ -260,4 +260,4 @@ s.addText("Thank you — questions welcome", { x: 0.9, y: 6.45, w: 6.2, h: 0.5, 
 s.addText([{ text: "Code:  ", options: { color: MUTE } }, { text: "github.com/i9x0/cloud-ssrf-lab   ", options: { color: ACCENT, bold: true } }, { text: "Demo:  ", options: { color: MUTE } }, { text: "cloud-ssrf-lab-aws.vercel.app", options: { color: ACCENT, bold: true } }], { x: 6.0, y: 6.55, w: 6.7, h: 0.4, fontFace: "Consolas", fontSize: 12, align: "right", isTextBox: true, margin: 0 });
 notes(s, "الخلاصة: سرقة مفاتيح السحابة مشكلة متعددة الطبقات، وما ينفع فيها إلا الدفاع متعدد الطبقات: أمّن خدمة المفاتيح، افحص الروابط، قلّل الصلاحيات، وراقب. وهذي مساهمة كل عضو. شكراً، وجاهزين لأسئلتكم.");
 
-pres.writeFile({ fileName: path.join(__dirname, "CS621_Presentation.pptx") }).then((f) => console.log("wrote", f));
+pres.writeFile({ fileName: path.join(__dirname, process.env.OUT_PPTX || "CS621_Presentation.pptx") }).then((f) => console.log("wrote", f));

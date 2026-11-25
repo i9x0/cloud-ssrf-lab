@@ -26,3 +26,7 @@ report/CS621_Practical_Report_v2.docx
 # --- Python ---
 __pycache__/
 *.pyc
+
+# interim rebuilds while originals are open
+report/*_NEW.docx
+report/*_NEW.pptx
