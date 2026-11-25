@@ -3,110 +3,132 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cloud SSRF Lab — SSRF to Cloud Metadata</title>
-<meta name="description" content="An isolated Docker lab reproducing the SSRF to cloud-metadata credential-theft chain (Capital One 2019) and four defences, with measured results.">
+<title>Cloud SSRF Lab — Interactive Demo</title>
+<meta name="description" content="Interactive browser simulation of the SSRF to cloud-metadata attack (Capital One 2019). Try the attack and toggle four defences on and off to see the effect.">
 <style>
   :root{
     --bg:#0c1020; --bg2:#121833; --panel:#1b2447; --panel2:#232d57;
     --ink:#eef1fb; --mut:#aab3d4; --line:#2b3568;
-    --accent:#5aa0ff; --teal:#2dd4bf; --red:#f05d5d; --green:#34d399; --gold:#f5b041;
+    --accent:#5aa0ff; --teal:#2dd4bf; --red:#f05d5d; --green:#34d399; --gold:#f5b041; --purple:#9d8bff;
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{margin:0;background:var(--bg);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    line-height:1.65;-webkit-font-smoothing:antialiased}
-  a{color:var(--accent);text-decoration:none}
-  a:hover{text-decoration:underline}
-  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
-  code,.mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
+    line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+  .mono,code,pre,input{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
 
-  header.nav{position:sticky;top:0;z-index:20;background:rgba(12,16,32,.82);
+  header.nav{position:sticky;top:0;z-index:30;background:rgba(12,16,32,.85);
     backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-  header.nav .wrap{display:flex;align-items:center;gap:18px;height:58px}
-  header.nav .brand{font-weight:700;letter-spacing:.3px}
-  header.nav .brand b{color:var(--teal)}
-  header.nav nav{margin-left:auto;display:flex;gap:18px;flex-wrap:wrap}
+  header.nav .wrap{display:flex;align-items:center;gap:16px;height:56px}
+  .brand{font-weight:700} .brand b{color:var(--teal)}
+  header.nav nav{margin-left:auto;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
   header.nav nav a{color:var(--mut);font-size:14px}
-  header.nav nav a:hover{color:var(--ink);text-decoration:none}
-  .ghbtn{background:var(--accent);color:#07122b!important;padding:7px 14px;border-radius:8px;
-    font-weight:600;font-size:14px}
+  .ghbtn{background:var(--accent);color:#07122b!important;padding:7px 13px;border-radius:8px;font-weight:600;font-size:14px}
   .ghbtn:hover{text-decoration:none;filter:brightness(1.08)}
 
-  .hero{background:radial-gradient(1100px 500px at 70% -10%,rgba(90,160,255,.18),transparent 60%),
-    linear-gradient(180deg,#0c1020,#0e1428);border-bottom:1px solid var(--line)}
-  .hero .wrap{padding:70px 20px 60px}
-  .kicker{color:var(--teal);font-weight:700;letter-spacing:3px;font-size:13px;text-transform:uppercase}
-  h1{font-size:clamp(30px,5vw,50px);line-height:1.1;margin:14px 0 10px;font-weight:800}
-  .sub{font-size:clamp(17px,2.4vw,21px);color:var(--mut);max-width:760px}
-  .badges{display:flex;gap:10px;flex-wrap:wrap;margin:26px 0 30px}
-  .badge{background:var(--panel);border:1px solid var(--line);border-radius:999px;
-    padding:7px 14px;font-size:13px;color:var(--ink)}
-  .badge b{color:var(--teal)}
-  .cta{display:flex;gap:12px;flex-wrap:wrap}
-  .btn{padding:12px 20px;border-radius:10px;font-weight:600;font-size:15px;border:1px solid var(--line)}
-  .btn.primary{background:var(--accent);color:#07122b;border-color:transparent}
-  .btn.ghost{background:transparent;color:var(--ink)}
-  .btn:hover{text-decoration:none;filter:brightness(1.07)}
+  .hero{background:radial-gradient(1000px 440px at 72% -10%,rgba(90,160,255,.16),transparent 60%);
+    border-bottom:1px solid var(--line)}
+  .hero .wrap{padding:44px 20px 30px}
+  .kicker{color:var(--teal);font-weight:700;letter-spacing:3px;font-size:12px;text-transform:uppercase}
+  h1{font-size:clamp(26px,4.4vw,42px);line-height:1.12;margin:12px 0 8px;font-weight:800}
+  .sub{font-size:clamp(15px,2.2vw,19px);color:var(--mut);max-width:800px}
+  .simtag{display:inline-block;margin-top:14px;background:rgba(157,139,255,.14);color:#c9bfff;
+    border:1px solid rgba(157,139,255,.4);border-radius:999px;padding:6px 13px;font-size:13px}
 
-  section{padding:58px 0;border-bottom:1px solid var(--line)}
-  h2{font-size:clamp(24px,3.4vw,34px);margin:0 0 6px;font-weight:800}
-  .lead{color:var(--mut);max-width:780px;margin:0 0 26px}
+  section{padding:30px 0}
+  h2{font-size:clamp(20px,3vw,27px);margin:0 0 4px;font-weight:800}
+  h2 .em{color:var(--teal)}
+  .lead{color:var(--mut);max-width:820px;margin:0 0 18px;font-size:15px}
 
-  .flow{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;margin-top:10px}
-  .step{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);
-    border-radius:12px;padding:16px}
-  .step .n{display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;
-    border-radius:50%;background:var(--red);color:#fff;font-weight:700;font-size:14px;margin-bottom:8px}
-  .step.ok .n{background:var(--green)}
-  .step h4{margin:0 0 4px;font-size:15px}
-  .step p{margin:0;color:var(--mut);font-size:13.5px}
-  .arrowrow{color:var(--mut);font-size:13px;margin:6px 0 0}
+  /* defence controls */
+  .controls{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px}
+  .ctitle{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .ctitle h3{margin:0;font-size:17px}
+  .cfgbadge{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .pill{border-radius:999px;padding:6px 13px;font-size:13px;font-weight:700;border:1px solid var(--line)}
+  .pill.cfg{background:var(--panel2);color:#fff}
+  .pill.danger{background:rgba(240,93,93,.16);color:#ffb4b4;border-color:rgba(240,93,93,.5)}
+  .pill.safe{background:rgba(52,211,153,.14);color:#aef0d4;border-color:rgba(52,211,153,.5)}
+  .defs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+  .def{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;
+    display:flex;gap:12px;align-items:flex-start;transition:border-color .2s,background .2s}
+  .def.on{border-color:var(--green);background:rgba(52,211,153,.07)}
+  .def .meta{flex:1;min-width:0}
+  .def .tag{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+  .def h4{margin:2px 0 3px;font-size:15px}
+  .def p{margin:0;color:var(--mut);font-size:12.5px;line-height:1.45}
+  /* switch */
+  .sw{position:relative;flex:none;width:46px;height:26px;cursor:pointer}
+  .sw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+  .sw .track{position:absolute;inset:0;background:#3b4680;border-radius:999px;transition:background .2s}
+  .sw .knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+  .sw input:checked ~ .track{background:var(--green)}
+  .sw input:checked ~ .knob{transform:translateX(20px)}
+  .cfoot{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+  .qbtn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:9px;
+    padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer}
+  .qbtn:hover{border-color:var(--accent)}
+  .qbtn.hard{background:rgba(52,211,153,.14);border-color:rgba(52,211,153,.5);color:#aef0d4}
+  .qbtn.vuln{background:rgba(240,93,93,.12);border-color:rgba(240,93,93,.45);color:#ffb4b4}
 
-  figure{margin:24px 0 0;background:var(--bg2);border:1px solid var(--line);border-radius:14px;
-    padding:14px;text-align:center}
-  figure img{max-width:100%;height:auto;border-radius:8px;display:block;margin:0 auto}
-  figcaption{color:var(--mut);font-size:13px;margin-top:10px}
+  /* playground grid */
+  .play{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+  @media(max-width:820px){.play{grid-template-columns:1fr}}
+  .pane{background:var(--bg2);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+  .pbar{padding:11px 16px;font-size:13px;font-weight:700;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:8px}
+  .dot{width:10px;height:10px;border-radius:50%} .dot.r{background:#ff5f56}.dot.y{background:#ffbd2e}.dot.g{background:#27c93f}
+  .pbody{padding:16px}
 
-  .grid{display:grid;gap:16px;margin-top:8px}
-  .def{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
-  .card .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:1px;
-    text-transform:uppercase;padding:3px 10px;border-radius:999px;margin-bottom:12px}
-  .card h3{margin:.2em 0 .3em;font-size:18px}
-  .card p{margin:0;color:var(--mut);font-size:14px}
-  .t-teal{background:rgba(45,212,191,.15);color:var(--teal)}
-  .t-green{background:rgba(52,211,153,.15);color:var(--green)}
-  .t-gold{background:rgba(245,176,65,.15);color:var(--gold)}
-  .t-red{background:rgba(240,93,93,.15);color:var(--red)}
+  /* linkpeek */
+  .lp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .lp-head .name{font-weight:700}
+  .guardflag{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
+  .guardflag.off{background:rgba(245,176,65,.16);color:var(--gold)}
+  .guardflag.on{background:rgba(52,211,153,.16);color:var(--green)}
+  .urlrow{display:flex;gap:8px}
+  .urlrow input{flex:1;min-width:0;background:#070b18;border:1px solid var(--line);color:var(--ink);
+    border-radius:9px;padding:11px 12px;font-size:13px}
+  .urlrow button{background:var(--accent);color:#07122b;border:0;border-radius:9px;padding:0 18px;
+    font-weight:700;cursor:pointer;font-size:14px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
+  .chip{background:var(--panel);border:1px solid var(--line);color:var(--mut);border-radius:999px;
+    padding:6px 12px;font-size:12px;cursor:pointer}
+  .chip:hover{color:var(--ink);border-color:var(--accent)}
+  .resp{margin-top:14px;min-height:120px;background:#070b18;border:1px solid var(--line);border-radius:10px;padding:13px;font-size:12.5px}
+  .resp .status{font-weight:700;margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .sbadge{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
+  .sbadge.ok{background:rgba(52,211,153,.18);color:var(--green)}
+  .sbadge.blk{background:rgba(90,160,255,.18);color:var(--accent)}
+  .sbadge.dny{background:rgba(245,176,65,.18);color:var(--gold)}
+  .sbadge.err{background:rgba(240,93,93,.18);color:var(--red)}
+  .resp pre{margin:0;white-space:pre-wrap;word-break:break-word;color:#c6d0f0;background:none;border:0;padding:0}
+  .leak{color:var(--red);font-weight:700}
 
-  .tablewrap{overflow-x:auto;margin-top:10px;border:1px solid var(--line);border-radius:14px}
-  table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
-  th,td{padding:12px 14px;text-align:center;border-bottom:1px solid var(--line)}
-  th{background:var(--panel2);font-weight:700;color:var(--ink)}
-  td:first-child,th:first-child{text-align:left}
-  tbody tr:nth-child(odd){background:rgba(255,255,255,.02)}
-  .bad{color:var(--red);font-weight:700}
-  .good{color:var(--green);font-weight:700}
-  .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+  /* attacker console */
+  .runbtn{width:100%;background:var(--red);color:#fff;border:0;border-radius:10px;padding:13px;
+    font-weight:700;font-size:15px;cursor:pointer}
+  .runbtn:hover{filter:brightness(1.07)}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px;text-align:center}
+  .stat .v{font-size:22px;font-weight:800} .stat .l{font-size:11px;color:var(--mut);margin-top:2px}
+  .v.red{color:var(--red)} .v.green{color:var(--green)}
+  .term{background:#05080f;border:1px solid var(--line);border-radius:10px;padding:13px;min-height:150px;
+    max-height:320px;overflow:auto;font-size:12.5px;line-height:1.7}
+  .term .ln{white-space:pre-wrap;word-break:break-word}
+  .c-mut{color:#6b78a8}.c-ok{color:var(--green)}.c-bad{color:var(--red)}.c-step{color:var(--accent);font-weight:700}
+  .c-warn{color:var(--gold)}.c-alert{color:#ff8a8a;font-weight:700}
 
-  .finds{display:grid;gap:12px;margin-top:8px}
-  .find{display:flex;gap:14px;background:var(--panel);border:1px solid var(--line);
-    border-radius:12px;padding:16px}
-  .find .dot{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
-    justify-content:center;font-weight:800;color:#07122b}
-  .find h4{margin:0 0 3px;font-size:16px}
-  .find p{margin:0;color:var(--mut);font-size:14px}
-
-  pre{background:#070b18;border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto;
-    font-size:13.5px;color:#d7def5}
-  .note{background:rgba(240,93,93,.08);border:1px solid rgba(240,93,93,.4);border-radius:12px;
-    padding:14px 16px;color:#ffd4d4;font-size:14px;margin-top:20px}
-
-  footer{padding:40px 0 60px;color:var(--mut);font-size:14px}
-  footer .wrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center}
-  .authors{color:var(--mut)}
-  @media(max-width:560px){ header.nav nav a:not(.ghbtn){display:none} .hero .wrap{padding:48px 20px} }
+  .ref{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:center;margin-top:8px}
+  @media(max-width:820px){.ref{grid-template-columns:1fr}}
+  .ref img{max-width:100%;border-radius:12px;border:1px solid var(--line);background:#fff}
+  .note{background:rgba(157,139,255,.08);border:1px solid rgba(157,139,255,.4);border-radius:12px;
+    padding:13px 15px;color:#d7cfff;font-size:13.5px;margin-top:16px}
+  footer{padding:30px 0 56px;color:var(--mut);font-size:13.5px;border-top:1px solid var(--line);margin-top:24px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center}
 </style>
 </head>
 <body>
@@ -114,127 +136,295 @@
 <header class="nav"><div class="wrap">
   <span class="brand">Cloud&nbsp;<b>SSRF</b>&nbsp;Lab</span>
   <nav>
-    <a href="#attack">Attack</a>
-    <a href="#defences">Defences</a>
-    <a href="#results">Results</a>
+    <a href="#demo">Demo</a>
+    <a href="#about">About</a>
     <a class="ghbtn" href="https://github.com/i9x0/cloud-ssrf-lab" target="_blank" rel="noopener">GitHub ↗</a>
   </nav>
 </div></header>
 
 <div class="hero"><div class="wrap">
   <div class="kicker">CS621 · Cloud Computing Security</div>
-  <h1>Server-Side Request Forgery to Cloud Metadata</h1>
-  <p class="sub">An isolated, reproducible Docker lab that rebuilds the exact attack chain behind the
-    2019 Capital One breach — <b>SSRF → instance metadata → stolen IAM credentials → S3 data theft</b> —
-    then implements and <em>measures</em> four cloud defences against it.</p>
-  <div class="badges">
-    <span class="badge"><b>8</b>&nbsp;Docker services</span>
-    <span class="badge"><b>23</b>&nbsp;SSRF payloads</span>
-    <span class="badge"><b>4</b>&nbsp;defences</span>
-    <span class="badge"><b>1,000</b>&nbsp;records at stake</span>
-  </div>
-  <div class="cta">
-    <a class="btn primary" href="https://github.com/i9x0/cloud-ssrf-lab" target="_blank" rel="noopener">View source on GitHub</a>
-    <a class="btn ghost" href="#results">See the results</a>
-  </div>
+  <h1>Try the attack. Toggle the defences.</h1>
+  <p class="sub">An interactive simulation of the SSRF&nbsp;→&nbsp;cloud-metadata&nbsp;→&nbsp;credential-theft
+    chain behind the 2019 Capital One breach. Fetch a URL through the vulnerable app, then switch the four
+    defences on and off and watch the attack succeed or get blocked — in real time.</p>
+  <span class="simtag">● Browser simulation — runs the real lab's logic client-side (no live containers)</span>
 </div></div>
 
-<section id="problem"><div class="wrap">
-  <h2>The problem</h2>
-  <p class="lead">Cloud virtual machines receive a short-lived identity from a local
-    <b>metadata service</b> at <code>169.254.169.254</code>. Any flaw that makes the server fetch a
-    URL of the attacker's choosing — a Server-Side Request Forgery (SSRF), OWASP Top&nbsp;10
-    <b>A10:2021</b> — can read those credentials and pivot into the cloud account. This is not
-    theoretical: in 2019 it exposed data on <b>100M+</b> Capital One customers.</p>
-  <figure>
-    <img src="results/figures/fig_architecture.png" alt="System architecture: attacker, web app, metadata service, S3 and detector on isolated Docker networks" loading="lazy">
-    <figcaption>Lab architecture — red is the attack path (1–4); every component maps to a real AWS service, all on isolated Docker networks on one host.</figcaption>
-  </figure>
-</div></section>
+<section id="demo"><div class="wrap">
 
-<section id="attack"><div class="wrap">
-  <h2>The attack chain</h2>
-  <p class="lead">Using only the public web interface of a vulnerable URL-preview app, the attacker walks
-    six steps and exfiltrates the whole customer database on the undefended baseline.</p>
-  <div class="flow">
-    <div class="step"><span class="n">1</span><h4>Recon</h4><p>Use the preview feature like a normal user.</p></div>
-    <div class="step"><span class="n">2</span><h4>SSRF</h4><p>Point it at the metadata service.</p></div>
-    <div class="step"><span class="n">3</span><h4>Find role</h4><p>Discover the IAM role name.</p></div>
-    <div class="step"><span class="n">4</span><h4>Steal keys</h4><p>Read the temporary credentials.</p></div>
-    <div class="step"><span class="n">5</span><h4>List buckets</h4><p>From the attacker's own machine.</p></div>
-    <div class="step"><span class="n">6</span><h4>Exfiltrate</h4><p>Download 1,000 customer records.</p></div>
+  <div class="controls">
+    <div class="ctitle">
+      <h3>Defence controls</h3>
+      <div class="cfgbadge">
+        <span id="cfgPill" class="pill cfg">C0 · Baseline</span>
+        <span id="outcomePill" class="pill danger">Fully exploitable</span>
+      </div>
+    </div>
+    <div class="defs">
+      <label class="def" id="defD1">
+        <span class="sw"><input type="checkbox" id="d1"><span class="track"></span><span class="knob"></span></span>
+        <span class="meta"><span class="tag">Metadata</span><h4>D1 · IMDSv2</h4>
+          <p>Require a session token before serving credentials. Blocks token-less SSRF to the metadata service.</p></span>
+      </label>
+      <label class="def" id="defD2">
+        <span class="sw"><input type="checkbox" id="d2"><span class="track"></span><span class="knob"></span></span>
+        <span class="meta"><span class="tag">Application</span><h4>D2 · SSRF guard</h4>
+          <p>Resolve the host and block private / link-local ranges, re-validate redirects, pin the IP.</p></span>
+      </label>
+      <label class="def" id="defD3">
+        <span class="sw"><input type="checkbox" id="d3"><span class="track"></span><span class="knob"></span></span>
+        <span class="meta"><span class="tag">IAM</span><h4>D3 · Least privilege</h4>
+          <p>The role may only write uploads — it cannot read the customer database even if the key leaks.</p></span>
+      </label>
+      <label class="def" id="defD4">
+        <span class="sw"><input type="checkbox" id="d4"><span class="track"></span><span class="knob"></span></span>
+        <span class="meta"><span class="tag">Detection</span><h4>D4 · Exfil detector</h4>
+          <p>Raise an alert when the role key is used from any IP other than the instance itself.</p></span>
+      </label>
+    </div>
+    <div class="cfoot">
+      <button class="qbtn vuln" onclick="preset(0,0,0,0)">Disable all (baseline)</button>
+      <button class="qbtn" onclick="preset(1,0,0,0)">Only IMDSv2</button>
+      <button class="qbtn" onclick="preset(0,1,0,0)">Only SSRF guard</button>
+      <button class="qbtn" onclick="preset(0,0,1,0)">Only least privilege</button>
+      <button class="qbtn hard" onclick="preset(1,1,1,1)">Enable all defences</button>
+    </div>
   </div>
-  <figure>
-    <img src="results/screenshots/05_attack_chain_C0.png" alt="Terminal showing the full attack chain stealing 1000 records on the baseline" loading="lazy">
-    <figcaption>Baseline (no defences): the full chain succeeds. Credentials are masked; all customer data is synthetic.</figcaption>
-  </figure>
-</div></section>
 
-<section id="defences"><div class="wrap">
-  <h2>Four defences, one per link</h2>
-  <p class="lead">No single control is enough — each defence covers a different link in the chain.</p>
-  <div class="grid def">
-    <div class="card"><span class="tag t-teal">Metadata</span><h3>D1 · IMDSv2 enforced</h3>
-      <p>Requires a session token before serving credentials, blocking simple GET-based SSRF.</p></div>
-    <div class="card"><span class="tag t-green">Application</span><h3>D2 · SSRF input guard</h3>
-      <p>Resolves the host and blocks private / link-local ranges, re-validates redirects, pins the IP.</p></div>
-    <div class="card"><span class="tag t-gold">IAM</span><h3>D3 · Least privilege</h3>
-      <p>The instance role may only write uploads — it cannot read the customer database.</p></div>
-    <div class="card"><span class="tag t-red">Detection</span><h3>D4 · Exfil detector</h3>
-      <p>Alerts when the role key is used from any IP other than the instance itself.</p></div>
+  <div class="play">
+    <!-- LinkPeek victim app -->
+    <div class="pane">
+      <div class="pbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        &nbsp;LinkPeek — URL preview service (victim app)</div>
+      <div class="pbody">
+        <div class="lp-head">
+          <span class="name">Paste a URL to preview</span>
+          <span id="guardFlag" class="guardflag off">SSRF guard: OFF</span>
+        </div>
+        <div class="urlrow">
+          <input id="url" value="http://cdn.example.net/products/7" spellcheck="false">
+          <button onclick="doFetch()">Fetch</button>
+        </div>
+        <div class="chips">
+          <span class="chip" onclick="setUrl('http://cdn.example.net/products/7')">Normal page</span>
+          <span class="chip" onclick="setUrl('http://169.254.169.254/latest/meta-data/iam/security-credentials/webapp-role')">Steal credentials</span>
+          <span class="chip" onclick="setUrl('http://2852039166/latest/meta-data/iam/security-credentials/webapp-role')">Decimal-encoded IP</span>
+          <span class="chip" onclick="setUrl('http://attacker.evil/redirect?to=http://169.254.169.254/latest/meta-data/iam/security-credentials/webapp-role')">Open redirect</span>
+          <span class="chip" onclick="setUrl('http://10.0.1.20/employees')">Internal VPC service</span>
+          <span class="chip" onclick="setUrl('http://127.0.0.1/admin/debug')">Localhost admin</span>
+        </div>
+        <div class="resp" id="resp"><span class="c-mut">Response will appear here. Try a payload chip above.</span></div>
+      </div>
+    </div>
+
+    <!-- attacker console -->
+    <div class="pane">
+      <div class="pbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        &nbsp;Attacker console — full kill chain</div>
+      <div class="pbody">
+        <button class="runbtn" onclick="runChain()">▶ Run full attack chain</button>
+        <div class="stats">
+          <div class="stat"><div class="v" id="stCreds">—</div><div class="l">Credentials</div></div>
+          <div class="stat"><div class="v" id="stRecords">—</div><div class="l">Records stolen</div></div>
+          <div class="stat"><div class="v" id="stAlerts">—</div><div class="l">Exfil alerts</div></div>
+        </div>
+        <div class="term" id="term"><span class="c-mut">Press “Run full attack chain”. Then flip the defences and run it again.</span></div>
+      </div>
+    </div>
   </div>
+
+  <div class="note"><b>What am I looking at?</b> This page runs the lab's real decision logic in your browser —
+    the SSRF input filter, IMDSv2 token check, the least-privilege IAM policy and the detector — so the outcomes
+    match the measured results in the repository. The actual 8-container Docker lab (real network isolation) lives
+    on <a href="https://github.com/i9x0/cloud-ssrf-lab" target="_blank" rel="noopener">GitHub</a> and runs locally or on a cloud VM.</div>
 </div></section>
 
-<section id="results"><div class="wrap">
-  <h2>Measured results</h2>
-  <p class="lead">Five configurations, each run through an identical harness: 23 SSRF payloads + the full
-    kill chain + 100 legitimate requests. Every number comes straight from the automated output.</p>
-  <div class="tablewrap"><table>
-    <thead><tr><th>Config</th><th>Defences</th><th>SSRF blocked</th><th>Creds stolen</th><th>Records lost</th><th>Legit OK</th><th>Alerts</th></tr></thead>
-    <tbody>
-      <tr><td>C0</td><td>None</td><td class="bad">0 / 23</td><td class="bad">Yes</td><td class="bad">1000</td><td>100/100</td><td>2</td></tr>
-      <tr><td>C1</td><td>IMDSv2</td><td>14 / 23</td><td class="good">No</td><td class="good">0</td><td>100/100</td><td>0</td></tr>
-      <tr><td>C2</td><td>SSRF guard</td><td class="good">23 / 23</td><td class="good">No</td><td class="good">0</td><td>100/100</td><td>0</td></tr>
-      <tr><td>C3</td><td>Least priv.</td><td class="bad">0 / 23</td><td class="bad">Yes</td><td class="good">0</td><td>100/100</td><td>2</td></tr>
-      <tr><td>C4</td><td>All three</td><td class="good">23 / 23</td><td class="good">No</td><td class="good">0</td><td>100/100</td><td>0</td></tr>
-    </tbody>
-  </table></div>
-  <div class="charts">
-    <figure><img src="results/figures/fig_payload_outcomes.png" alt="Bar chart of SSRF payload outcomes per configuration" loading="lazy">
-      <figcaption>Outcome of the 23 SSRF payloads per configuration.</figcaption></figure>
-    <figure><img src="results/figures/fig_kill_chain.png" alt="Grid showing how far the attacker reaches in each configuration" loading="lazy">
-      <figcaption>How far the attacker reaches in each configuration.</figcaption></figure>
+<section id="about"><div class="wrap">
+  <h2>How the real lab is <span class="em">built</span></h2>
+  <p class="lead">Eight Docker services on four isolated networks reproduce a cloud account's trust relationships;
+    every component maps to a real AWS service.</p>
+  <div class="ref">
+    <img src="results/figures/fig_architecture.png" alt="Lab architecture diagram" loading="lazy">
+    <div>
+      <p class="lead" style="margin-bottom:10px">Across five configurations (23 SSRF payloads + the full kill chain
+        + 100 legitimate requests each): the undefended baseline leaked all <b>1,000</b> records, the SSRF guard alone
+        blocked <b>23/23</b> payloads, least privilege cut data loss to <b>0</b>, and all defences combined blocked
+        everything with <b>0%</b> false positives.</p>
+      <a class="ghbtn" href="https://github.com/i9x0/cloud-ssrf-lab" target="_blank" rel="noopener">Full project &amp; report ↗</a>
+    </div>
   </div>
-</div></section>
-
-<section id="findings"><div class="wrap">
-  <h2>Key findings</h2>
-  <div class="finds">
-    <div class="find"><span class="dot" style="background:var(--red)">1</span><div><h4>No single control is enough</h4><p>IMDSv2 leaves internal &amp; loopback SSRF open (9/23 still hit); least privilege doesn't stop theft, only limits the damage.</p></div></div>
-    <div class="find"><span class="dot" style="background:var(--green)">2</span><div><h4>Fix the root cause</h4><p>The SSRF guard blocked 23/23 because it addresses the server-side fetch itself, not one target.</p></div></div>
-    <div class="find"><span class="dot" style="background:var(--teal)">3</span><div><h4>Defences are complementary</h4><p>D1 stops theft, D3 contains a leaked key, D4 detects misuse — together they cover the whole chain.</p></div></div>
-    <div class="find"><span class="dot" style="background:var(--gold)">4</span><div><h4>No cost to usability</h4><p>100/100 legitimate requests kept working in every configuration, with ~0.1&nbsp;ms median latency overhead.</p></div></div>
-  </div>
-</div></section>
-
-<section id="run"><div class="wrap">
-  <h2>Run it yourself</h2>
-  <p class="lead">Clone the repo and start the whole cloud locally with Docker (details in the README).</p>
-  <pre>git clone https://github.com/i9x0/cloud-ssrf-lab.git
-cd cloud-ssrf-lab
-python setup.py            <span style="color:#7c88b5"># lab keys + synthetic data</span>
-docker compose up -d       <span style="color:#7c88b5"># start the 8 services</span>
-docker compose run --rm attacker python attack_chain.py   <span style="color:#7c88b5"># live attack</span>
-python run_experiment.py   <span style="color:#7c88b5"># full evaluation</span></pre>
-  <div class="note"><b>Safety:</b> this lab is deliberately vulnerable and runs only inside isolated Docker
-    networks on one machine. All customer data is synthetic; all lab credentials are random and local.
-    Never expose it to the public Internet.</div>
 </div></section>
 
 <footer><div class="wrap">
-  <span class="authors">Jouf University · CS621 — Abdullah Alruwaili · Ahmed Alsaleh · Bassam Alruwaili</span>
+  <span>Jouf University · CS621 — Abdullah Alruwaili · Ahmed Alsaleh · Bassam Alruwaili</span>
   <a class="ghbtn" href="https://github.com/i9x0/cloud-ssrf-lab" target="_blank" rel="noopener">github.com/i9x0/cloud-ssrf-lab</a>
 </div></footer>
 
+<script>
+"use strict";
+var T={d1:false,d2:false,d3:false,d4:false};
+
+/* ---------- IP helpers (ported from ssrf_guard.py) ---------- */
+function ipToInt(ip){var p=ip.split('.').map(Number);return(((p[0]<<24)>>>0)+(p[1]<<16)+(p[2]<<8)+p[3])>>>0;}
+function toDotted(n){n>>>=0;return[(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join('.');}
+var DNS={ "cdn.example.net":"203.0.113.20","www.example.net":"203.0.113.20","attacker.evil":"203.0.113.66",
+  "instance-data.ec2.internal":"169.254.169.254","internal-api.vpc.local":"10.0.1.20",
+  "linkpeek.example.com":"203.0.113.10","localhost":"127.0.0.1" };
+function parseNumericHost(h){
+  h=h.replace(/^\[/,'').replace(/\]$/,'');
+  var m=h.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/i); if(m) return m[1];
+  if(/^\d+$/.test(h)) return toDotted(parseInt(h,10));
+  if(/^0x[0-9a-f]+$/i.test(h)) return toDotted(parseInt(h,16));
+  if(/^[0-9a-fx.]+$/i.test(h) && h.indexOf('.')>-1){
+    var parts=h.split('.'); if(parts.length<1||parts.length>4) return null;
+    var nums=[]; for(var i=0;i<parts.length;i++){var p=parts[i];var n;
+      if(/^0x[0-9a-f]+$/i.test(p)) n=parseInt(p,16);
+      else if(/^0[0-7]+$/.test(p)) n=parseInt(p,8);
+      else if(/^\d+$/.test(p)) n=parseInt(p,10); else return null; nums.push(n);}
+    var bytes=[];
+    if(parts.length===4 && nums.every(function(n){return n<256;})) bytes=nums;
+    else{ for(var j=0;j<nums.length-1;j++){ if(nums[j]>255) return null; bytes.push(nums[j]); }
+      var rem=nums[nums.length-1], remBytes=4-(nums.length-1);
+      for(var k=remBytes-1;k>=0;k--) bytes.push((rem>>>(8*k))&255); }
+    if(bytes.length===4 && bytes.every(function(b){return b>=0&&b<256;})) return bytes.join('.');
+  }
+  return null;
+}
+function resolveHost(h){ h=h.toLowerCase(); if(DNS[h]) return DNS[h];
+  if(/^\d+\.\d+\.\d+\.\d+$/.test(h)) return h; return parseNumericHost(h); }
+var BLOCKED=[['169.254.0.0',16],['10.0.0.0',8],['127.0.0.0',8],['0.0.0.0',8],
+  ['192.168.0.0',16],['172.16.0.0',12],['100.64.0.0',10],['192.0.0.0',24],['198.18.0.0',15]];
+function inBlocked(ip){var i=ipToInt(ip);for(var x=0;x<BLOCKED.length;x++){
+  var b=ipToInt(BLOCKED[x][0]),bits=BLOCKED[x][1],mask=bits===0?0:(~0<<(32-bits))>>>0;
+  if((i&mask)===(b&mask)) return BLOCKED[x][0]+'/'+bits;} return null;}
+
+/* ---------- SSRF guard (D2) ---------- */
+function guardValidate(raw){
+  var u; try{u=new URL(raw);}catch(e){return{ok:false,reason:"malformed URL"};}
+  var scheme=u.protocol.replace(':','').toLowerCase();
+  if(scheme!=='http'&&scheme!=='https') return{ok:false,reason:"scheme '"+scheme+"' not allowed"};
+  if(u.username||u.password) return{ok:false,reason:"credentials (user@host) in URL not allowed"};
+  var port=u.port?parseInt(u.port,10):(scheme==='https'?443:80);
+  if(port!==80&&port!==443) return{ok:false,reason:"port "+port+" not allowed"};
+  var ip=resolveHost(u.hostname); if(!ip) return{ok:false,reason:"host '"+u.hostname+"' does not resolve"};
+  var net=inBlocked(ip); if(net) return{ok:false,reason:"destination "+ip+" is inside blocked range "+net};
+  return{ok:true,ip:ip};
+}
+
+/* ---------- server-side fetch (webapp behaviour) ---------- */
+function serverFetch(raw,depth){
+  depth=depth||0;
+  if(T.d2){ var g=guardValidate(raw); if(!g.ok) return{blocked:true,reason:g.reason}; }
+  var u; try{u=new URL(raw);}catch(e){return{error:"invalid"};}
+  var ip=resolveHost(u.hostname);
+  if(!ip) return{error:"host does not resolve"};
+  // open redirect handling
+  if(ip==='203.0.113.66' && u.pathname.indexOf('/redirect')===0){
+    var to=u.searchParams.get('to'); if(to && depth<3) return serverFetch(to,depth+1);
+  }
+  var path=u.pathname;
+  if(ip==='169.254.169.254'){
+    if(T.d1) return{status:401,kind:'imds',body:"(IMDSv2) 401 Unauthorized — a session token is required.\nThis token-less GET was refused."};
+    if(/security-credentials\/webapp-role$/.test(path))
+      return{status:200,kind:'creds',creds:true,
+        body:'{\n  "Code": "Success",\n  "Type": "AWS-HMAC",\n  "AccessKeyId": "ASIA************BBPI",\n  "SecretAccessKey": "8p7Y********************************LAN/",\n  "Token": "IQoJb3J...masked...",\n  "Expiration": "2026-11-25T23:10:04Z"\n}'};
+    if(/security-credentials\/?$/.test(path)) return{status:200,kind:'imds',body:"webapp-role"};
+    return{status:200,kind:'imds',body:"ami-id\nhostname\niam/\ninstance-id\ninstance-type\nlocal-ipv4\nplacement/\npublic-ipv4"};
+  }
+  if(ip==='10.0.1.20') return{status:200,kind:'internal',body:"INTERNAL-HR-API v2 (VPC only)\nendpoints: /employees /payroll\nrecords: 412 employees (synthetic)"};
+  if(ip==='127.0.0.1') return{status:200,kind:'local',body:"WEBAPP-DEBUG\nenv=production\ndb_host=10.0.1.30\nfeature_flags=preview,save\nsecret_key=<redacted for the lab>"};
+  if(ip==='203.0.113.20') return{status:200,kind:'public',body:"PUBLIC-CONTENT — partner CDN\n<html><body><h2>Product spec sheet</h2></body></html>"};
+  if(ip==='203.0.113.66') return{status:200,kind:'public',body:"attacker-controlled server (public Internet)"};
+  if(ip==='203.0.113.10') return{status:200,kind:'public',body:"LinkPeek home"};
+  return{status:200,kind:'public',body:"(public content)"};
+}
+
+/* ---------- UI: state ---------- */
+function esc(s){return String(s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function cfgLabel(){
+  var n=(T.d1?1:0)+(T.d2?1:0)+(T.d3?1:0)+(T.d4?1:0);
+  if(n===0) return{id:"C0 · Baseline",safe:false,txt:"Fully exploitable"};
+  if(T.d1&&T.d2&&T.d3) return{id:"C4 · Defence in depth",safe:true,txt:"Attack fully blocked"};
+  if(T.d2&&!T.d1&&!T.d3) return{id:"C2 · SSRF guard",safe:true,txt:"All payloads blocked"};
+  if(T.d1&&!T.d2&&!T.d3) return{id:"C1 · IMDSv2",safe:false,txt:"Credentials safe, internal SSRF open"};
+  if(T.d3&&!T.d1&&!T.d2) return{id:"C3 · Least privilege",safe:false,txt:"Key stolen but data safe"};
+  return{id:"Custom",safe:(T.d2||(T.d1&&T.d3)),txt:(T.d2||(T.d1&&T.d3))?"Data protected":"Partially exposed"};
+}
+function sync(){
+  T.d1=document.getElementById('d1').checked; T.d2=document.getElementById('d2').checked;
+  T.d3=document.getElementById('d3').checked; T.d4=document.getElementById('d4').checked;
+  [['d1','defD1'],['d2','defD2'],['d3','defD3'],['d4','defD4']].forEach(function(p){
+    document.getElementById(p[1]).classList.toggle('on',document.getElementById(p[0]).checked);});
+  var gf=document.getElementById('guardFlag');
+  gf.textContent="SSRF guard: "+(T.d2?"ON":"OFF"); gf.className="guardflag "+(T.d2?"on":"off");
+  var c=cfgLabel();
+  document.getElementById('cfgPill').textContent=c.id;
+  var op=document.getElementById('outcomePill'); op.textContent=c.txt;
+  op.className="pill "+(c.safe?"safe":"danger");
+}
+function preset(a,b,c,d){
+  document.getElementById('d1').checked=!!a; document.getElementById('d2').checked=!!b;
+  document.getElementById('d3').checked=!!c; document.getElementById('d4').checked=!!d; sync();
+}
+['d1','d2','d3','d4'].forEach(function(id){document.getElementById(id).addEventListener('change',sync);});
+function setUrl(u){document.getElementById('url').value=u; doFetch();}
+
+/* ---------- single fetch (LinkPeek) ---------- */
+function doFetch(){
+  var raw=document.getElementById('url').value.trim();
+  var r=serverFetch(raw); var el=document.getElementById('resp'); var h='';
+  if(r.blocked){
+    h='<div class="status"><span class="sbadge blk">BLOCKED</span> SSRF guard refused the request</div>'+
+      '<pre>'+esc(r.reason)+'</pre>';
+  } else if(r.error){
+    h='<div class="status"><span class="sbadge err">ERROR</span> '+esc(r.error)+'</div>';
+  } else if(r.status===401){
+    h='<div class="status"><span class="sbadge dny">HTTP 401</span> Metadata service refused</div><pre>'+esc(r.body)+'</pre>';
+  } else {
+    var b=r.kind==='creds'?'dny':'ok';
+    h='<div class="status"><span class="sbadge '+b+'">HTTP 200</span> fetched by the server</div><pre>'+esc(r.body)+'</pre>';
+    if(r.creds) h+='<p class="leak" style="margin:10px 0 0">⚠ Instance credentials just leaked to the attacker through SSRF.</p>';
+  }
+  el.innerHTML=h;
+}
+
+/* ---------- full kill chain ---------- */
+function runChain(){
+  var term=document.getElementById('term'); var lines=[];
+  function add(cls,txt){lines.push('<div class="ln '+cls+'">'+txt+'</div>');}
+  add('c-mut','=== attack chain vs '+cfgLabel().id+' ===');
+  add('c-step','[1] Recon'); add('c-mut','    fetch http://cdn.example.net/ → HTTP 200 (looks like a normal preview)');
+  add('c-step','[2] SSRF → read the cloud metadata service');
+  var credUrl='http://169.254.169.254/latest/meta-data/iam/security-credentials/webapp-role';
+  var r=serverFetch(credUrl);
+  var creds=false, records=0, alert=0, stopped=false;
+  if(r.blocked){ add('c-bad','    BLOCKED by SSRF guard → '+esc(r.reason)); add('c-bad','    ✗ attack stopped at step 2'); stopped=true; }
+  else if(r.status===401){ add('c-warn','    HTTP 401 — IMDSv2 requires a session token the SSRF cannot get'); add('c-bad','    ✗ attack stopped at step 2'); stopped=true; }
+  else { creds=true; add('c-ok','    metadata reachable (IMDSv1, no token needed)');
+    add('c-step','[3] Discover the IAM role'); add('c-mut','    role name: webapp-role');
+    add('c-step','[4] Steal the temporary credentials'); add('c-bad','    AccessKeyId ASIA************BBPI  → exfiltrated to the attacker'); }
+  if(creds){
+    add('c-step','[5] Use the stolen key from the attacker IP (203.0.113.100)');
+    if(T.d3){ add('c-warn','    ListBuckets → AccessDenied  (role may only write uploads)');
+      add('c-step','[6] Read customer-data/exports/customers.csv');
+      add('c-bad','    AccessDenied — least privilege blocks the read'); records=0; }
+    else { add('c-ok','    ListBuckets → [app-uploads, customer-data]');
+      add('c-step','[6] Download customer-data/exports/customers.csv');
+      add('c-bad','    downloaded 1000 customer records'); records=1000; }
+    if(T.d4){ alert=2; add('c-alert','    ◉ DETECTOR: HIGH — InstanceCredentialExfiltration (key used from 203.0.113.100, expected 203.0.113.10)'); }
+  }
+  var verdict = records>0 ? 'c-bad' : 'c-ok';
+  add(verdict, records>0 ? '► RESULT: full compromise — '+records+' records stolen (synthetic)'
+    : (creds ? '► RESULT: credentials stolen but USELESS — 0 records lost'
+             : '► RESULT: attack blocked — 0 credentials, 0 records'));
+  term.innerHTML=lines.join(''); term.scrollTop=0;
+  document.getElementById('stCreds').innerHTML = creds?'<span class="red">Stolen</span>':'<span class="green">Safe</span>';
+  document.getElementById('stRecords').innerHTML = '<span class="'+(records>0?'red':'green')+'">'+records+'</span>';
+  document.getElementById('stAlerts').innerHTML = '<span class="'+(alert>0?'green':'')+'">'+alert+'</span>';
+}
+
+sync();
+</script>
 </body>
 </html>
