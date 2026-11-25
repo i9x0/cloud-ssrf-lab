@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;background:#1e1e1e;font-family:Consolas,'Cascadia Mono',monospace;font-size:14px;color:#d4d4d4}
+.bar{background:#323233;color:#ccc;padding:8px 14px;font-family:Segoe UI,Arial;font-size:13px}
+.bar b{color:#fff} pre{margin:0;padding:12px 16px;white-space:pre-wrap;line-height:19px}
+.cmd{color:#9cdcfe}</style></head><body><div class="bar"><b>Lab deployment: all cloud components running (docker compose ps)</b></div>
+<pre><span class="cmd">PS C:\...\cloud-ssrf-lab&gt; docker compose ps</span>
+SERVICE        IMAGE                        STATUS
+detector       ssrf-lab/py:1.0              Up 2 minutes
+evil           ssrf-lab/py:1.0              Up 2 minutes
+imds           ssrf-lab/py:1.0              Up About a minute
+internal-api   ssrf-lab/py:1.0              Up 2 minutes
+s3-gateway     nginx:1.27-alpine            Up 2 minutes
+seaweedfs      chrislusf/seaweedfs:latest   Up 56 seconds
+webapp         ssrf-lab/py:1.0              Up About a minute
+website        ssrf-lab/py:1.0              Up 2 minutes</pre></body></html>

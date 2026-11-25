@@ -1,0 +1,24 @@
+id,target,technique,C0,C1,C2,C3,C4
+M01,metadata,Direct link-local IP,success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+M02,metadata,DNS alias (instance-data),success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+M03,metadata,Decimal IP encoding,success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+M04,metadata,Hexadecimal IP encoding,success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+M05,metadata,Octal IP encoding,success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+M06,metadata,Short-form IP (169.254.43518),success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+M07,metadata,IPv4-mapped IPv6,success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+M08,metadata,Explicit port :80,success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+M09,metadata,User-info prefix (trusted@),success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+M10,metadata,Upper-case scheme,success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+M11,metadata,Open redirect 302,success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+M12,metadata,Open redirect 307 + decimal IP,success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+M13,metadata,Metadata index listing,success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+M14,metadata,Instance identity (hostname),success,denied-imdsv2,blocked-by-guard,success,blocked-by-guard
+V01,internal-vpc,Direct private IP,success,success,blocked-by-guard,success,blocked-by-guard
+V02,internal-vpc,Internal DNS name,success,success,blocked-by-guard,success,blocked-by-guard
+V03,internal-vpc,Decimal IP encoding,success,success,blocked-by-guard,success,blocked-by-guard
+V04,internal-vpc,Open redirect 302,success,success,blocked-by-guard,success,blocked-by-guard
+L01,localhost,127.0.0.1,success,success,blocked-by-guard,success,blocked-by-guard
+L02,localhost,localhost name,success,success,blocked-by-guard,success,blocked-by-guard
+L03,localhost,0.0.0.0,success,success,blocked-by-guard,success,blocked-by-guard
+L04,localhost,Short-form 127.1,success,success,blocked-by-guard,success,blocked-by-guard
+L05,localhost,Open redirect 302,success,success,blocked-by-guard,success,blocked-by-guard

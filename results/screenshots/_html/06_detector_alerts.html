@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;background:#1e1e1e;font-family:Consolas,'Cascadia Mono',monospace;font-size:14px;color:#d4d4d4}
+.bar{background:#323233;color:#ccc;padding:8px 14px;font-family:Segoe UI,Arial;font-size:13px}
+.bar b{color:#fff} pre{margin:0;padding:12px 16px;white-space:pre-wrap;line-height:19px}
+.cmd{color:#9cdcfe}</style></head><body><div class="bar"><b>D4 Detector: GuardDuty-style credential exfiltration findings</b></div>
+<pre><span class="cmd">PS C:\...\cloud-ssrf-lab&gt; docker compose logs detector --tail 4</span>
+ALERT {
+  &quot;time&quot;: &quot;2026-11-20T17:11:04Z&quot;,
+  &quot;finding&quot;: &quot;UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration&quot;,
+  &quot;severity&quot;: &quot;HIGH&quot;,
+  &quot;access_key&quot;: &quot;ASIA************BBPI&quot;,
+  &quot;expected_source&quot;: &quot;203.0.113.10&quot;,
+  &quot;actual_source&quot;: &quot;203.0.113.100&quot;,
+  &quot;api_call&quot;: &quot;GET /customer-data?list-type=2&amp;encoding-type=url&quot;,
+  &quot;http_status&quot;: 403}
+ALERT {
+  &quot;time&quot;: &quot;2026-11-20T17:12:09Z&quot;,
+  &quot;finding&quot;: &quot;UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration&quot;,
+  &quot;severity&quot;: &quot;HIGH&quot;,
+  &quot;access_key&quot;: &quot;ASIA************BBPI&quot;,
+  &quot;expected_source&quot;: &quot;203.0.113.10&quot;,
+  &quot;actual_source&quot;: &quot;203.0.113.100&quot;,
+  &quot;api_call&quot;: &quot;GET /&quot;,
+  &quot;http_status&quot;: 200}
+ALERT {
+  &quot;time&quot;: &quot;2026-11-20T17:12:09Z&quot;,
+  &quot;finding&quot;: &quot;UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration&quot;,
+  &quot;severity&quot;: &quot;HIGH&quot;,
+  &quot;access_key&quot;: &quot;ASIA************BBPI&quot;,
+  &quot;expected_source&quot;: &quot;203.0.113.10&quot;,
+  &quot;actual_source&quot;: &quot;203.0.113.100&quot;,
+  &quot;api_call&quot;: &quot;GET /customer-data?list-type=2&amp;encoding-type=url&quot;,
+  &quot;http_status&quot;: 200}
+ALERT {
+  &quot;time&quot;: &quot;2026-11-20T17:12:09Z&quot;,
+  &quot;finding&quot;: &quot;UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration&quot;,
+  &quot;severity&quot;: &quot;HIGH&quot;,
+  &quot;access_key&quot;: &quot;ASIA************BBPI&quot;,
+  &quot;expected_source&quot;: &quot;203.0.113.10&quot;,
+  &quot;actual_source&quot;: &quot;203.0.113.100&quot;,
+  &quot;api_call&quot;: &quot;GET /customer-data/exports/customers.csv&quot;,
+  &quot;http_status&quot;: 200}</pre></body></html>

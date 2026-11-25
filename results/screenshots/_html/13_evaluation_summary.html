@@ -1,0 +1,13 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;background:#1e1e1e;font-family:Consolas,'Cascadia Mono',monospace;font-size:14px;color:#d4d4d4}
+.bar{background:#323233;color:#ccc;padding:8px 14px;font-family:Segoe UI,Arial;font-size:13px}
+.bar b{color:#fff} pre{margin:0;padding:12px 16px;white-space:pre-wrap;line-height:19px}
+.cmd{color:#9cdcfe}</style></head><body><div class="bar"><b>Automated evaluation: 5 configurations x 23 payloads + 100 legitimate requests</b></div>
+<pre><span class="cmd">PS C:\...\cloud-ssrf-lab&gt; python run_experiment.py   (summary)</span>
+Config                SSRF success (all)    Creds stolen          Records exfiltrated   Legit OK              False-positive rate   Median latency ms     Exfil alerts        
+C0                    23/23                 Yes                   1000                  100/100               0.0%                  2.38                  2                   
+C1                    9/23                  No                    0                     100/100               0.0%                  2.39                  0                   
+C2                    0/23                  No                    0                     100/100               0.0%                  2.38                  0                   
+C3                    23/23                 Yes                   0                     100/100               0.0%                  2.34                  2                   
+C4                    0/23                  No                    0                     100/100               0.0%                  2.49                  0                   
+</pre></body></html>

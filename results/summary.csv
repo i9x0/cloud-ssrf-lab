@@ -1,0 +1,6 @@
+Config,Defences,SSRF success (all),Metadata,Internal VPC,Localhost,Creds stolen,Customer data read,Records exfiltrated,Legit OK,False-positive rate,App S3 upload OK,Median latency ms,P95 latency ms,Exfil alerts
+C0,Baseline (no defences),23/23,14/14,4/4,5/5,Yes,allowed,1000,100/100,0.0%,5/5,2.38,4.05,2
+C1,D1: IMDSv2 enforced,9/23,0/14,4/4,5/5,No,n/a (no creds),0,100/100,0.0%,5/5,2.39,4.1,0
+C2,D2: SSRF input guard,0/23,0/14,0/4,0/5,No,n/a (no creds),0,100/100,0.0%,5/5,2.38,4.4,0
+C3,D3: Least-privilege role,23/23,14/14,4/4,5/5,Yes,denied:AccessDenied,0,100/100,0.0%,5/5,2.34,4.12,2
+C4,D1+D2+D3: Defence in depth,0/23,0/14,0/4,0/5,No,n/a (no creds),0,100/100,0.0%,5/5,2.49,4.95,0

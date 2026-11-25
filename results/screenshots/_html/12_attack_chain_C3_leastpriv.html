@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;background:#1e1e1e;font-family:Consolas,'Cascadia Mono',monospace;font-size:14px;color:#d4d4d4}
+.bar{background:#323233;color:#ccc;padding:8px 14px;font-family:Segoe UI,Arial;font-size:13px}
+.bar b{color:#fff} pre{margin:0;padding:12px 16px;white-space:pre-wrap;line-height:19px}
+.cmd{color:#9cdcfe}</style></head><body><div class="bar"><b>C3 Least privilege: credentials stolen but useless for customer data</b></div>
+<pre><span class="cmd">PS C:\...\cloud-ssrf-lab&gt; docker compose run --rm attacker python attack_chain.py</span>
+<span style="font-weight:bold">=== Cloud SSRF attack chain against http://linkpeek.example.com ===</span>
+
+<span style="font-weight:bold"><span style="color:#66d9e8">[STEP 1] Recon: use the URL-preview feature as a normal user</span></span>
+  fetch http://cdn.example.net/ -&gt; HTTP 200  (3.49 ms)
+  <span style="color:#ffd43b">=&gt; the server fetches any URL we give it: potential SSRF</span>
+
+<span style="font-weight:bold"><span style="color:#66d9e8">[STEP 2] SSRF: make the server read its own cloud metadata service</span></span>
+  ami-id  hostname  iam/  instance-id  instance-type  local-ipv4  placement/  public-ipv4
+  <span style="color:#ffd43b">=&gt; metadata reachable through the web server (IMDSv1, no token needed)</span>
+
+<span style="font-weight:bold"><span style="color:#66d9e8">[STEP 3] Discover the IAM role attached to the instance</span></span>
+  role name: <span style="font-weight:bold">webapp-role</span>
+
+<span style="font-weight:bold"><span style="color:#66d9e8">[STEP 4] Steal the role credentials</span></span>
+  AccessKeyId     : ASIA************BBPI
+  SecretAccessKey : 8p7Y********************************LAN/   (masked for the report)
+  Expiration      : 2026-11-20T23:13:07Z
+  <span style="color:#ff6b6b">=&gt; credentials exfiltrated to the attacker&#x27;s machine</span>
+
+<span style="font-weight:bold"><span style="color:#66d9e8">[STEP 5] Use the stolen credentials from OUTSIDE the cloud (attacker IP 203.0.113.100)</span></span>
+  ListBuckets -&gt; []
+
+<span style="font-weight:bold"><span style="color:#66d9e8">[STEP 6] Exfiltrate the customer database</span></span>
+  <span style="color:#ff6b6b"><span style="font-weight:bold">ATTACK STOPPED:</span></span> <span style="color:#ff6b6b">S3 refused the stolen key: AccessDenied (least-privilege role)</span>
+
+<span style="font-weight:bold">RESULT: attack chain broken at this step.</span></pre></body></html>

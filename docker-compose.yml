@@ -1,0 +1,146 @@
+# Cloud SSRF -> Instance Metadata -> S3 exfiltration lab (Capital One 2019 scenario)
+# Defence switches (set as environment variables before `docker compose up -d`):
+#   IMDS_MODE  = optional | required           (D1  IMDSv2 enforcement)
+#   SSRF_GUARD = off | on                      (D2  application-level SSRF filter)
+#   IAM_POLICY = overprivileged | leastprivilege (D3  least-privilege instance role)
+#   The exfiltration detector (D4) is always running.
+name: cloud-ssrf-lab
+
+x-py: &py
+  build: ./services
+  image: ssrf-lab/py:1.0
+  restart: unless-stopped
+  volumes:
+    - ./services:/app:ro
+    - ./results/logs:/logs
+
+networks:
+  internet:          # simulated public Internet (TEST-NET-3 documentation range)
+    ipam: {config: [{subnet: 203.0.113.0/24}]}
+  vpc:               # private VPC subnet
+    internal: true
+    ipam: {config: [{subnet: 10.0.1.0/24}]}
+  imds-link:         # link-local segment that only the instance can reach
+    internal: true
+    ipam: {config: [{subnet: 169.254.169.0/24}]}
+  storage-backend:   # storage cluster network (behind the S3 API gateway)
+    internal: true
+    ipam: {config: [{subnet: 10.0.9.0/24}]}
+
+volumes:
+  s3-data:
+
+services:
+  imds:
+    <<: *py
+    command: python imds.py
+    environment:
+      IMDS_MODE: ${IMDS_MODE:-optional}
+      ROLE_NAME: webapp-role
+      ROLE_KEY: ${ROLE_KEY}
+      ROLE_SECRET: ${ROLE_SECRET}
+    networks:
+      imds-link:
+        ipv4_address: 169.254.169.254
+        aliases: [instance-data.ec2.internal]
+
+  webapp:
+    <<: *py
+    command: python webapp.py
+    environment:
+      SSRF_GUARD: ${SSRF_GUARD:-off}
+      S3_ENDPOINT: http://s3.cloud.local:9000
+    ports:
+      - "127.0.0.1:8080:80"
+    networks:
+      internet:
+        ipv4_address: 203.0.113.10
+        aliases: [linkpeek.example.com]
+      vpc:
+        ipv4_address: 10.0.1.10
+      imds-link:
+        ipv4_address: 169.254.169.10
+    depends_on: [imds, s3-gateway]
+
+  website:
+    <<: *py
+    command: python small_services.py website
+    networks:
+      internet:
+        ipv4_address: 203.0.113.20
+        aliases: [cdn.example.net]
+
+  internal-api:
+    <<: *py
+    command: python small_services.py internal-api
+    networks:
+      vpc:
+        ipv4_address: 10.0.1.20
+        aliases: [internal-api.vpc.local]
+
+  evil:
+    <<: *py
+    command: python small_services.py evil
+    networks:
+      internet:
+        ipv4_address: 203.0.113.66
+        aliases: [attacker.evil]
+
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    restart: unless-stopped
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -volume.max=100 -master.volumeSizeLimitMB=64
+    volumes:
+      - s3-data:/data
+      - ./storage/s3-${IAM_POLICY:-overprivileged}.json:/etc/seaweedfs/s3.json:ro
+    networks:
+      storage-backend:
+        ipv4_address: 10.0.9.20
+
+  s3-gateway:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    volumes:
+      - ./storage/s3-gateway.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./results/logs:/logs
+    networks:
+      internet:
+        ipv4_address: 203.0.113.30
+        aliases: [s3.cloud.local]
+      storage-backend:
+        ipv4_address: 10.0.9.10
+    depends_on: [seaweedfs]
+
+  detector:
+    <<: *py
+    command: python detector.py
+    environment:
+      ROLE_KEY: ${ROLE_KEY}
+      WEBAPP_IP: 203.0.113.10
+    network_mode: none
+
+  # ---- one-shot tools (docker compose run --rm <name> ...) ----
+  seed:
+    <<: *py
+    restart: "no"
+    profiles: [tools]
+    command: python seed.py
+    environment:
+      ADMIN_KEY: ${ADMIN_KEY}
+      ADMIN_SECRET: ${ADMIN_SECRET}
+    volumes:
+      - ./services:/app:ro
+      - ./storage/seed:/seed:ro
+    networks: [internet]
+
+  attacker:            # the attacker's machine on the Internet: holds NO lab secrets
+    <<: *py
+    restart: "no"
+    profiles: [tools]
+    working_dir: /attacker
+    volumes:
+      - ./attacker:/attacker:ro
+      - ./results:/results
+    networks:
+      internet:
+        ipv4_address: 203.0.113.100
