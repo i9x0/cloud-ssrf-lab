@@ -116,7 +116,9 @@ const doc = new Document({
       new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 40 }, children: [new TextRun({ text: "Abdullah Alruwaili  (471114279)", size: 22 })] }),
       new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 40 }, children: [new TextRun({ text: "Ahmed Alsaleh  (471114261)", size: 22 })] }),
       new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 600 }, children: [new TextRun({ text: "Bassam Alruwaili  (471114260)", size: 22 })] }),
-      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Date: 25 November 2026", size: 22, color: GREY })] }),
+      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: [new TextRun({ text: "Date: 25 November 2026", size: 22, color: GREY })] }),
+      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: [new TextRun({ text: "Project repository: ", size: 20, color: GREY }), new TextRun({ text: "https://github.com/i9x0/cloud-ssrf-lab", size: 20, bold: true, color: ACCENT })] }),
+      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Live interactive demo: ", size: 20, color: GREY }), new TextRun({ text: "https://cloud-ssrf-lab-aws.vercel.app", size: 20, bold: true, color: ACCENT })] }),
       new Paragraph({ children: [new PageBreak()] }),
 
       // ---------------- TOC ----------------
@@ -259,12 +261,14 @@ const doc = new Document({
       ...figure(path.join(FIG, "fig_payload_outcomes.png"), "Figure 10. Outcome of the 23 SSRF payloads under each configuration.", 580),
       ...figure(path.join(FIG, "fig_kill_chain.png"), "Figure 11. How far the attacker progresses along the kill chain in each configuration.", 580),
 
+      P([T("Beyond the Docker lab, the same decision logic is published as a free browser demo at "), new TextRun({ text: "https://cloud-ssrf-lab-aws.vercel.app", bold: true, color: ACCENT }), T(", where a visitor can toggle the four defences on and off and run the attack live. Its outcomes match Table 1 (the baseline leaks 1,000 records; all defences block the chain).")]),
+      ...figure(path.join(SHOT, "14_live_site.png"), "Figure 12. The public interactive demo (cloud-ssrf-lab-aws.vercel.app): live defence toggles, a vulnerable-app fetch pane, and an attacker console.", 470),
       H("4.6 Discussion", HeadingLevel.HEADING_2),
       bullet([B("No single control is sufficient. "), T("IMDSv2 (D1) protects the metadata service but leaves internal-service and loopback SSRF open (9/23 payloads still succeed). Least privilege (D3) does not stop credential theft at all — it only limits the blast radius.")]),
       bullet([B("Input validation is the strongest single control here. "), T("The SSRF guard (D2) blocked 23/23 payloads because it addresses the root cause (the server-side fetch) rather than one target.")]),
       bullet([B("Defences are complementary, not redundant. "), T("D1 stops credential theft, D3 contains the damage if a key leaks another way, and D4 detects misuse. Combined (C4) they block every payload and detect any residual abuse.")]),
       bullet([B("Security did not harm usability or performance. "), T("Across all configurations, 100/100 legitimate requests succeeded (0% false positives) and the median added latency was about 0.1 ms (Figure 12).")]),
-      ...figure(path.join(FIG, "fig_latency.png"), "Figure 12. Latency of legitimate requests under each configuration (n = 100).", 580),
+      ...figure(path.join(FIG, "fig_latency.png"), "Figure 13. Latency of legitimate requests under each configuration (n = 100).", 580),
 
       H("4.7 Limitations", HeadingLevel.HEADING_2),
       bullet("The lab is a faithful but simplified model: SeaweedFS stands in for S3, and the metadata/IAM logic is emulated, so exact byte-level behaviour differs from AWS."),
@@ -319,13 +323,15 @@ const doc = new Document({
         "[10] Amazon Web Services, “Amazon GuardDuty finding types – UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration,” 2024.",
         "[11] Docker Inc., “Docker Compose and networking documentation,” 2024.",
         "[12] SeaweedFS, “S3 API documentation,” 2024.",
+        "[13] Project source code, “cloud-ssrf-lab,” https://github.com/i9x0/cloud-ssrf-lab, 2026.",
+        "[14] Live interactive demo, https://cloud-ssrf-lab-aws.vercel.app, 2026.",
       ].map((r) => new Paragraph({ spacing: { after: 80, line: 264 }, indent: { left: 460, hanging: 460 }, children: [new TextRun({ text: r, size: 20 })] })),
     ],
   }],
 });
 
 Packer.toBuffer(doc).then((buf) => {
-  const out = path.join(__dirname, "CS621_Practical_Report.docx");
+  const out = path.join(__dirname, process.env.OUT_DOCX || "CS621_Practical_Report.docx");
   fs.writeFileSync(out, buf);
   console.log("wrote", out, buf.length, "bytes");
 });

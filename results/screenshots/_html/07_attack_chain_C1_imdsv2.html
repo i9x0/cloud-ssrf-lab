@@ -7,7 +7,7 @@ body{margin:0;background:#1e1e1e;font-family:Consolas,'Cascadia Mono',monospace;
 <span style="font-weight:bold">=== Cloud SSRF attack chain against http://linkpeek.example.com ===</span>
 
 <span style="font-weight:bold"><span style="color:#66d9e8">[STEP 1] Recon: use the URL-preview feature as a normal user</span></span>
-  fetch http://cdn.example.net/ -&gt; HTTP 200  (2.36 ms)
+  fetch http://cdn.example.net/ -&gt; HTTP 200  (13.7 ms)
   <span style="color:#ffd43b">=&gt; the server fetches any URL we give it: potential SSRF</span>
 
 <span style="font-weight:bold"><span style="color:#66d9e8">[STEP 2] SSRF: make the server read its own cloud metadata service</span></span>

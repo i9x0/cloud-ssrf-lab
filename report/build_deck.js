@@ -12,6 +12,7 @@ const F = (f) => path.join(FIG, f);
 const NAVY = "131A30", PANEL = "1E2761", INK = "1F2937", MUTE = "6B7280";
 const RED = "C0392B", GREEN = "15803D", TEAL = "0E7490", GOLD = "B7791F";
 const LIGHT = "FFFFFF", SOFT = "EEF2F7", LINE = "D7DEE8", ICE = "CADCFC";
+const HERO = "F2F6FD", ACCENT = "2563EB";
 const HEAD = "Calibri", BODY = "Calibri";
 
 const pres = new pptxgen();
@@ -42,16 +43,18 @@ function notes(s, t) { s.addNotes(t); }
 
 // ============================================================ 1. TITLE
 let s = pres.addSlide();
-s.background = { color: NAVY };
-s.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: W, h: Hh, fill: { color: NAVY } });
-s.addText("CS621 — CLOUD COMPUTING SECURITY", { x: 0.9, y: 1.3, w: 11, h: 0.4, fontFace: BODY, fontSize: 14, color: ICE, bold: true, charSpacing: 3, isTextBox: true, margin: 0 });
-s.addText("Server-Side Request Forgery to Cloud Metadata", { x: 0.9, y: 2.05, w: 11.5, h: 1.0, fontFace: HEAD, fontSize: 40, bold: true, color: "FFFFFF", isTextBox: true, margin: 0 });
-s.addText("Reproducing and defending the instance-credential theft chain", { x: 0.9, y: 3.05, w: 11.5, h: 0.6, fontFace: BODY, fontSize: 22, color: ICE, isTextBox: true, margin: 0 });
-s.addText("Practical Cloud Security Project (Lab-Based) — Capital One 2019 scenario", { x: 0.9, y: 3.65, w: 11.5, h: 0.5, fontFace: BODY, fontSize: 16, italic: true, color: "9FB3DE", isTextBox: true, margin: 0 });
+s.background = { color: HERO };
+s.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: W, h: Hh, fill: { color: HERO } });
+s.addText("CS621 — CLOUD COMPUTING SECURITY", { x: 0.9, y: 1.3, w: 11, h: 0.4, fontFace: BODY, fontSize: 14, color: TEAL, bold: true, charSpacing: 3, isTextBox: true, margin: 0 });
+s.addText("Server-Side Request Forgery to Cloud Metadata", { x: 0.9, y: 2.05, w: 11.5, h: 1.0, fontFace: HEAD, fontSize: 40, bold: true, color: PANEL, isTextBox: true, margin: 0 });
+s.addText("Reproducing and defending the instance-credential theft chain", { x: 0.9, y: 3.05, w: 11.5, h: 0.6, fontFace: BODY, fontSize: 22, color: INK, isTextBox: true, margin: 0 });
+s.addText("Practical Cloud Security Project (Lab-Based) — Capital One 2019 scenario", { x: 0.9, y: 3.65, w: 11.5, h: 0.5, fontFace: BODY, fontSize: 16, italic: true, color: MUTE, isTextBox: true, margin: 0 });
 s.addShape(pres.ShapeType.line, { x: 0.95, y: 4.55, w: 4.2, h: 0, line: { color: TEAL, width: 2 } });
 s.addText([{ text: "Abdullah Alruwaili", options: { breakLine: true } }, { text: "Ahmed Alsaleh", options: { breakLine: true } }, { text: "Bassam Alruwaili" }],
-  { x: 0.9, y: 4.8, w: 6, h: 1.2, fontFace: BODY, fontSize: 16, color: "FFFFFF", lineSpacingMultiple: 1.2, isTextBox: true, margin: 0 });
-s.addText("Jouf University · 25 Nov 2026", { x: 7.5, y: 6.7, w: 5, h: 0.4, fontFace: BODY, fontSize: 13, color: "9FB3DE", align: "right", isTextBox: true, margin: 0 });
+  { x: 0.9, y: 4.8, w: 6, h: 1.2, fontFace: BODY, fontSize: 16, color: INK, lineSpacingMultiple: 1.2, isTextBox: true, margin: 0 });
+s.addText([{ text: "Code:  ", options: { color: MUTE } }, { text: "github.com/i9x0/cloud-ssrf-lab", options: { color: ACCENT, bold: true } }], { x: 0.9, y: 6.22, w: 7, h: 0.4, fontFace: "Consolas", fontSize: 14, isTextBox: true, margin: 0 });
+s.addText([{ text: "Demo:  ", options: { color: MUTE } }, { text: "cloud-ssrf-lab-aws.vercel.app", options: { color: ACCENT, bold: true } }], { x: 0.9, y: 6.68, w: 7, h: 0.4, fontFace: "Consolas", fontSize: 14, isTextBox: true, margin: 0 });
+s.addText("Jouf University · 26 Nov 2026", { x: 7.5, y: 6.7, w: 5, h: 0.4, fontFace: BODY, fontSize: 13, color: MUTE, align: "right", isTextBox: true, margin: 0 });
 notes(s, "مرحباً دكتور. مشروعنا العملي يعيد بناء هجوم اختراق Capital One 2019، وهو هجوم SSRF على السحابة يسرق مفاتيح الدخول ثم يسرق البيانات. بنينا كل شيء معزولاً على جهاز واحد، ثم طبّقنا أربع حمايات وقِسنا فعاليتها بالأرقام.");
 
 // ============================================================ 2. PROBLEM
@@ -78,20 +81,20 @@ imgCard(s, P("03_webapp_ssrf_metadata.png"), 8.1, 1.7, 4.6, 4.0, "The app fetche
 notes(s, "المشكلة: خدمة السحابة تعطي التطبيق مفاتيحه من عنوان داخلي 169.254.169.254. وثغرة SSRF تعني إنك تخلي الخادم يجيب أي رابط تعطيه. فلو التطبيق فيه SSRF، يقدر المهاجم يخليه يقرأ المفاتيح. الصورة توضح التطبيق وهو يقرأ بيانات السحابة بأمر من المهاجم.");
 
 // ============================================================ 3. IMPACT
-s = pres.addSlide(); s.background = { color: NAVY };
+s = pres.addSlide(); s.background = { color: HERO };
 s.addText("WHY IT MATTERS", { x: 0.62, y: 0.35, w: 12, h: 0.3, fontFace: BODY, fontSize: 12, bold: true, color: TEAL, charSpacing: 2, isTextBox: true, margin: 0 });
-s.addText("Capital One, 2019: the same chain, in production", { x: 0.6, y: 0.62, w: 12.1, h: 0.8, fontFace: HEAD, fontSize: 30, bold: true, color: "FFFFFF", isTextBox: true, margin: 0 });
+s.addText("Capital One, 2019: the same chain, in production", { x: 0.6, y: 0.62, w: 12.1, h: 0.8, fontFace: HEAD, fontSize: 30, bold: true, color: PANEL, isTextBox: true, margin: 0 });
 const stats = [["100M+", "customers' records exposed"], ["$190M", "settlement with customers"], ["$80M", "regulatory fine (OCC)"], ["1", "SSRF bug started it all"]];
 stats.forEach((st, i) => {
   const x = 0.75 + i * 3.05;
-  s.addShape(pres.ShapeType.roundRect, { x, y: 1.9, w: 2.8, h: 2.0, rectRadius: 0.1, fill: { color: PANEL }, line: { type: "none" } });
-  s.addText(st[0], { x, y: 2.15, w: 2.8, h: 0.9, fontFace: HEAD, fontSize: 40, bold: true, color: i === 0 ? "FF6B6B" : ICE, align: "center", isTextBox: true, margin: 0 });
-  s.addText(st[1], { x: x + 0.15, y: 3.1, w: 2.5, h: 0.7, fontFace: BODY, fontSize: 13, color: "FFFFFF", align: "center", isTextBox: true, margin: 0 });
+  s.addShape(pres.ShapeType.roundRect, { x, y: 1.9, w: 2.8, h: 2.0, rectRadius: 0.1, fill: { color: LIGHT }, line: { color: LINE, width: 1 } });
+  s.addText(st[0], { x, y: 2.15, w: 2.8, h: 0.9, fontFace: HEAD, fontSize: 40, bold: true, color: i === 0 ? RED : PANEL, align: "center", isTextBox: true, margin: 0 });
+  s.addText(st[1], { x: x + 0.15, y: 3.1, w: 2.5, h: 0.7, fontFace: BODY, fontSize: 13, color: MUTE, align: "center", isTextBox: true, margin: 0 });
 });
 s.addText([
   { text: "The attacker used SSRF against a web app firewall, read the instance role credentials from the AWS metadata service, and used them to download data from S3 buckets.", options: {} },
-], { x: 0.75, y: 4.3, w: 11.8, h: 1.0, fontFace: BODY, fontSize: 17, color: ICE, isTextBox: true, margin: 0, lineSpacingMultiple: 1.2 });
-s.addText("MITRE ATT&CK T1552.005 — Unsecured Credentials: Cloud Instance Metadata API", { x: 0.75, y: 5.5, w: 11.8, h: 0.4, fontFace: BODY, fontSize: 13, italic: true, color: "9FB3DE", isTextBox: true, margin: 0 });
+], { x: 0.75, y: 4.3, w: 11.8, h: 1.0, fontFace: BODY, fontSize: 17, color: INK, isTextBox: true, margin: 0, lineSpacingMultiple: 1.2 });
+s.addText("MITRE ATT&CK T1552.005 — Unsecured Credentials: Cloud Instance Metadata API", { x: 0.75, y: 5.5, w: 11.8, h: 0.4, fontFace: BODY, fontSize: 13, italic: true, color: MUTE, isTextBox: true, margin: 0 });
 notes(s, "هذا الهجوم ليس نظرياً. سنة 2019 صار فعلاً لبنك Capital One: تسربت بيانات أكثر من 100 مليون عميل، ودفع البنك تسوية 190 مليون وغرامة 80 مليون. والبداية كانت ثغرة SSRF واحدة. هذا اللي نعيد بناءه ونحميه.");
 
 // ============================================================ 4. OBJECTIVES
@@ -223,26 +226,33 @@ finds.forEach((f, i) => {
 });
 notes(s, "أربعة دروس. أولاً: ولا حماية وحدها تكفي. ثانياً: أقوى حماية هي اللي تعالج السبب الجذري وهو فحص الروابط. ثالثاً: الحمايات تكمّل بعضها. رابعاً: الحماية ما أثّرت على المستخدمين ولا على الأداء — صفر إنذار كاذب وتأخير ضئيل جداً.");
 
-// ============================================================ 12. CONCLUSION + contributions
-s = pres.addSlide(); s.background = { color: NAVY };
+// ============================================================ 12. LIVE DEMO
+s = pres.addSlide(); s.background = { color: LIGHT };
+titleBar(s, "Public interactive demo", "Deliverable");
+imgCard(s, P("14_live_site.png"), 3.3, 1.45, 6.7, 5.45, "Live at cloud-ssrf-lab-aws.vercel.app — toggle the four defences and run the attack in the browser");
+notes(s, "وهذا الموقع التفاعلي المنشور: المستخدم يفعّل ويطفّي الحمايات الأربع ويشغّل الهجوم مباشرة في المتصفح، والنتائج تطابق المختبر. الرابط: cloud-ssrf-lab-aws.vercel.app");
+
+// ============================================================ 13. CONCLUSION + contributions
+s = pres.addSlide(); s.background = { color: HERO };
 s.addText("CONCLUSION", { x: 0.9, y: 0.6, w: 12, h: 0.3, fontFace: BODY, fontSize: 12, bold: true, color: TEAL, charSpacing: 2, isTextBox: true, margin: 0 });
-s.addText("Cloud credential theft is a multi-layer problem — only defence-in-depth works", { x: 0.9, y: 0.95, w: 11.5, h: 1.0, fontFace: HEAD, fontSize: 26, bold: true, color: "FFFFFF", isTextBox: true, margin: 0, lineSpacingMultiple: 1.05 });
+s.addText("Cloud credential theft is a multi-layer problem — only defence-in-depth works", { x: 0.9, y: 0.95, w: 11.5, h: 1.0, fontFace: HEAD, fontSize: 26, bold: true, color: PANEL, isTextBox: true, margin: 0, lineSpacingMultiple: 1.05 });
 s.addText([
   { text: "Secure the metadata service (IMDSv2) · validate server-side requests (SSRF guard) · minimise IAM permissions (least privilege) · monitor for misuse (detection). ", options: {} },
-  { text: "Each control covers a link the others miss.", options: { bold: true, color: ICE } },
-], { x: 0.9, y: 2.2, w: 11.6, h: 1.0, fontFace: BODY, fontSize: 16, color: ICE, isTextBox: true, margin: 0, lineSpacingMultiple: 1.2 });
-s.addText("Group member contributions", { x: 0.9, y: 3.5, w: 11, h: 0.4, fontFace: HEAD, fontSize: 17, bold: true, color: "FFFFFF", isTextBox: true, margin: 0 });
+  { text: "Each control covers a link the others miss.", options: { bold: true, color: PANEL } },
+], { x: 0.9, y: 2.2, w: 11.6, h: 1.0, fontFace: BODY, fontSize: 16, color: INK, isTextBox: true, margin: 0, lineSpacingMultiple: 1.2 });
+s.addText("Group member contributions", { x: 0.9, y: 3.5, w: 11, h: 0.4, fontFace: HEAD, fontSize: 17, bold: true, color: INK, isTextBox: true, margin: 0 });
 const contrib = [["Abdullah Alruwaili", "Architecture & Docker design; victim app and metadata service; report §1–3."],
   ["Ahmed Alsaleh", "Attack corpus & kill chain; defences D1 (IMDSv2) and D2 (SSRF guard); report §4.1–4.4."],
   ["Bassam Alruwaili", "Defences D3 (least privilege) & D4 (detector); evaluation harness, figures & results; §4.5–5."]];
 contrib.forEach((c, i) => {
   const x = 0.9 + i * 4.0;
-  s.addShape(pres.ShapeType.roundRect, { x, y: 4.05, w: 3.8, h: 2.1, rectRadius: 0.1, fill: { color: PANEL }, line: { type: "none" } });
-  s.addText(c[0], { x: x + 0.25, y: 4.25, w: 3.3, h: 0.6, fontFace: HEAD, fontSize: 15, bold: true, color: "FFFFFF", isTextBox: true, margin: 0 });
+  s.addShape(pres.ShapeType.roundRect, { x, y: 4.05, w: 3.8, h: 2.1, rectRadius: 0.1, fill: { color: LIGHT }, line: { color: LINE, width: 1 } });
+  s.addText(c[0], { x: x + 0.25, y: 4.25, w: 3.3, h: 0.6, fontFace: HEAD, fontSize: 15, bold: true, color: INK, isTextBox: true, margin: 0 });
   s.addShape(pres.ShapeType.line, { x: x + 0.25, y: 4.85, w: 1.2, h: 0, line: { color: TEAL, width: 1.5 } });
-  s.addText(c[1], { x: x + 0.25, y: 4.95, w: 3.35, h: 1.1, fontFace: BODY, fontSize: 12.5, color: ICE, isTextBox: true, margin: 0, lineSpacingMultiple: 1.1 });
+  s.addText(c[1], { x: x + 0.25, y: 4.95, w: 3.35, h: 1.1, fontFace: BODY, fontSize: 12.5, color: MUTE, isTextBox: true, margin: 0, lineSpacingMultiple: 1.1 });
 });
-s.addText("Thank you — questions welcome", { x: 0.9, y: 6.5, w: 11.5, h: 0.5, fontFace: HEAD, fontSize: 18, bold: true, color: "FFFFFF", isTextBox: true, margin: 0 });
+s.addText("Thank you — questions welcome", { x: 0.9, y: 6.45, w: 6.2, h: 0.5, fontFace: HEAD, fontSize: 18, bold: true, color: PANEL, isTextBox: true, margin: 0 });
+s.addText([{ text: "Code:  ", options: { color: MUTE } }, { text: "github.com/i9x0/cloud-ssrf-lab   ", options: { color: ACCENT, bold: true } }, { text: "Demo:  ", options: { color: MUTE } }, { text: "cloud-ssrf-lab-aws.vercel.app", options: { color: ACCENT, bold: true } }], { x: 6.0, y: 6.55, w: 6.7, h: 0.4, fontFace: "Consolas", fontSize: 12, align: "right", isTextBox: true, margin: 0 });
 notes(s, "الخلاصة: سرقة مفاتيح السحابة مشكلة متعددة الطبقات، وما ينفع فيها إلا الدفاع متعدد الطبقات: أمّن خدمة المفاتيح، افحص الروابط، قلّل الصلاحيات، وراقب. وهذي مساهمة كل عضو. شكراً، وجاهزين لأسئلتكم.");
 
 pres.writeFile({ fileName: path.join(__dirname, "CS621_Presentation.pptx") }).then((f) => console.log("wrote", f));

