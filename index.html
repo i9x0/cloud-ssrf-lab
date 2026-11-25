@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cloud SSRF Lab — SSRF to Cloud Metadata</title>
+<meta name="description" content="An isolated Docker lab reproducing the SSRF to cloud-metadata credential-theft chain (Capital One 2019) and four defences, with measured results.">
+<style>
+  :root{
+    --bg:#0c1020; --bg2:#121833; --panel:#1b2447; --panel2:#232d57;
+    --ink:#eef1fb; --mut:#aab3d4; --line:#2b3568;
+    --accent:#5aa0ff; --teal:#2dd4bf; --red:#f05d5d; --green:#34d399; --gold:#f5b041;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.65;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  code,.mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
+
+  header.nav{position:sticky;top:0;z-index:20;background:rgba(12,16,32,.82);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  header.nav .wrap{display:flex;align-items:center;gap:18px;height:58px}
+  header.nav .brand{font-weight:700;letter-spacing:.3px}
+  header.nav .brand b{color:var(--teal)}
+  header.nav nav{margin-left:auto;display:flex;gap:18px;flex-wrap:wrap}
+  header.nav nav a{color:var(--mut);font-size:14px}
+  header.nav nav a:hover{color:var(--ink);text-decoration:none}
+  .ghbtn{background:var(--accent);color:#07122b!important;padding:7px 14px;border-radius:8px;
+    font-weight:600;font-size:14px}
+  .ghbtn:hover{text-decoration:none;filter:brightness(1.08)}
+
+  .hero{background:radial-gradient(1100px 500px at 70% -10%,rgba(90,160,255,.18),transparent 60%),
+    linear-gradient(180deg,#0c1020,#0e1428);border-bottom:1px solid var(--line)}
+  .hero .wrap{padding:70px 20px 60px}
+  .kicker{color:var(--teal);font-weight:700;letter-spacing:3px;font-size:13px;text-transform:uppercase}
+  h1{font-size:clamp(30px,5vw,50px);line-height:1.1;margin:14px 0 10px;font-weight:800}
+  .sub{font-size:clamp(17px,2.4vw,21px);color:var(--mut);max-width:760px}
+  .badges{display:flex;gap:10px;flex-wrap:wrap;margin:26px 0 30px}
+  .badge{background:var(--panel);border:1px solid var(--line);border-radius:999px;
+    padding:7px 14px;font-size:13px;color:var(--ink)}
+  .badge b{color:var(--teal)}
+  .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .btn{padding:12px 20px;border-radius:10px;font-weight:600;font-size:15px;border:1px solid var(--line)}
+  .btn.primary{background:var(--accent);color:#07122b;border-color:transparent}
+  .btn.ghost{background:transparent;color:var(--ink)}
+  .btn:hover{text-decoration:none;filter:brightness(1.07)}
+
+  section{padding:58px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:clamp(24px,3.4vw,34px);margin:0 0 6px;font-weight:800}
+  .lead{color:var(--mut);max-width:780px;margin:0 0 26px}
+
+  .flow{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;margin-top:10px}
+  .step{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:16px}
+  .step .n{display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;
+    border-radius:50%;background:var(--red);color:#fff;font-weight:700;font-size:14px;margin-bottom:8px}
+  .step.ok .n{background:var(--green)}
+  .step h4{margin:0 0 4px;font-size:15px}
+  .step p{margin:0;color:var(--mut);font-size:13.5px}
+  .arrowrow{color:var(--mut);font-size:13px;margin:6px 0 0}
+
+  figure{margin:24px 0 0;background:var(--bg2);border:1px solid var(--line);border-radius:14px;
+    padding:14px;text-align:center}
+  figure img{max-width:100%;height:auto;border-radius:8px;display:block;margin:0 auto}
+  figcaption{color:var(--mut);font-size:13px;margin-top:10px}
+
+  .grid{display:grid;gap:16px;margin-top:8px}
+  .def{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:1px;
+    text-transform:uppercase;padding:3px 10px;border-radius:999px;margin-bottom:12px}
+  .card h3{margin:.2em 0 .3em;font-size:18px}
+  .card p{margin:0;color:var(--mut);font-size:14px}
+  .t-teal{background:rgba(45,212,191,.15);color:var(--teal)}
+  .t-green{background:rgba(52,211,153,.15);color:var(--green)}
+  .t-gold{background:rgba(245,176,65,.15);color:var(--gold)}
+  .t-red{background:rgba(240,93,93,.15);color:var(--red)}
+
+  .tablewrap{overflow-x:auto;margin-top:10px;border:1px solid var(--line);border-radius:14px}
+  table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+  th,td{padding:12px 14px;text-align:center;border-bottom:1px solid var(--line)}
+  th{background:var(--panel2);font-weight:700;color:var(--ink)}
+  td:first-child,th:first-child{text-align:left}
+  tbody tr:nth-child(odd){background:rgba(255,255,255,.02)}
+  .bad{color:var(--red);font-weight:700}
+  .good{color:var(--green);font-weight:700}
+  .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+
+  .finds{display:grid;gap:12px;margin-top:8px}
+  .find{display:flex;gap:14px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:16px}
+  .find .dot{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-weight:800;color:#07122b}
+  .find h4{margin:0 0 3px;font-size:16px}
+  .find p{margin:0;color:var(--mut);font-size:14px}
+
+  pre{background:#070b18;border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto;
+    font-size:13.5px;color:#d7def5}
+  .note{background:rgba(240,93,93,.08);border:1px solid rgba(240,93,93,.4);border-radius:12px;
+    padding:14px 16px;color:#ffd4d4;font-size:14px;margin-top:20px}
+
+  footer{padding:40px 0 60px;color:var(--mut);font-size:14px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center}
+  .authors{color:var(--mut)}
+  @media(max-width:560px){ header.nav nav a:not(.ghbtn){display:none} .hero .wrap{padding:48px 20px} }
+</style>
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <span class="brand">Cloud&nbsp;<b>SSRF</b>&nbsp;Lab</span>
+  <nav>
+    <a href="#attack">Attack</a>
+    <a href="#defences">Defences</a>
+    <a href="#results">Results</a>
+    <a class="ghbtn" href="https://github.com/i9x0/cloud-ssrf-lab" target="_blank" rel="noopener">GitHub ↗</a>
+  </nav>
+</div></header>
+
+<div class="hero"><div class="wrap">
+  <div class="kicker">CS621 · Cloud Computing Security</div>
+  <h1>Server-Side Request Forgery to Cloud Metadata</h1>
+  <p class="sub">An isolated, reproducible Docker lab that rebuilds the exact attack chain behind the
+    2019 Capital One breach — <b>SSRF → instance metadata → stolen IAM credentials → S3 data theft</b> —
+    then implements and <em>measures</em> four cloud defences against it.</p>
+  <div class="badges">
+    <span class="badge"><b>8</b>&nbsp;Docker services</span>
+    <span class="badge"><b>23</b>&nbsp;SSRF payloads</span>
+    <span class="badge"><b>4</b>&nbsp;defences</span>
+    <span class="badge"><b>1,000</b>&nbsp;records at stake</span>
+  </div>
+  <div class="cta">
+    <a class="btn primary" href="https://github.com/i9x0/cloud-ssrf-lab" target="_blank" rel="noopener">View source on GitHub</a>
+    <a class="btn ghost" href="#results">See the results</a>
+  </div>
+</div></div>
+
+<section id="problem"><div class="wrap">
+  <h2>The problem</h2>
+  <p class="lead">Cloud virtual machines receive a short-lived identity from a local
+    <b>metadata service</b> at <code>169.254.169.254</code>. Any flaw that makes the server fetch a
+    URL of the attacker's choosing — a Server-Side Request Forgery (SSRF), OWASP Top&nbsp;10
+    <b>A10:2021</b> — can read those credentials and pivot into the cloud account. This is not
+    theoretical: in 2019 it exposed data on <b>100M+</b> Capital One customers.</p>
+  <figure>
+    <img src="results/figures/fig_architecture.png" alt="System architecture: attacker, web app, metadata service, S3 and detector on isolated Docker networks" loading="lazy">
+    <figcaption>Lab architecture — red is the attack path (1–4); every component maps to a real AWS service, all on isolated Docker networks on one host.</figcaption>
+  </figure>
+</div></section>
+
+<section id="attack"><div class="wrap">
+  <h2>The attack chain</h2>
+  <p class="lead">Using only the public web interface of a vulnerable URL-preview app, the attacker walks
+    six steps and exfiltrates the whole customer database on the undefended baseline.</p>
+  <div class="flow">
+    <div class="step"><span class="n">1</span><h4>Recon</h4><p>Use the preview feature like a normal user.</p></div>
+    <div class="step"><span class="n">2</span><h4>SSRF</h4><p>Point it at the metadata service.</p></div>
+    <div class="step"><span class="n">3</span><h4>Find role</h4><p>Discover the IAM role name.</p></div>
+    <div class="step"><span class="n">4</span><h4>Steal keys</h4><p>Read the temporary credentials.</p></div>
+    <div class="step"><span class="n">5</span><h4>List buckets</h4><p>From the attacker's own machine.</p></div>
+    <div class="step"><span class="n">6</span><h4>Exfiltrate</h4><p>Download 1,000 customer records.</p></div>
+  </div>
+  <figure>
+    <img src="results/screenshots/05_attack_chain_C0.png" alt="Terminal showing the full attack chain stealing 1000 records on the baseline" loading="lazy">
+    <figcaption>Baseline (no defences): the full chain succeeds. Credentials are masked; all customer data is synthetic.</figcaption>
+  </figure>
+</div></section>
+
+<section id="defences"><div class="wrap">
+  <h2>Four defences, one per link</h2>
+  <p class="lead">No single control is enough — each defence covers a different link in the chain.</p>
+  <div class="grid def">
+    <div class="card"><span class="tag t-teal">Metadata</span><h3>D1 · IMDSv2 enforced</h3>
+      <p>Requires a session token before serving credentials, blocking simple GET-based SSRF.</p></div>
+    <div class="card"><span class="tag t-green">Application</span><h3>D2 · SSRF input guard</h3>
+      <p>Resolves the host and blocks private / link-local ranges, re-validates redirects, pins the IP.</p></div>
+    <div class="card"><span class="tag t-gold">IAM</span><h3>D3 · Least privilege</h3>
+      <p>The instance role may only write uploads — it cannot read the customer database.</p></div>
+    <div class="card"><span class="tag t-red">Detection</span><h3>D4 · Exfil detector</h3>
+      <p>Alerts when the role key is used from any IP other than the instance itself.</p></div>
+  </div>
+</div></section>
+
+<section id="results"><div class="wrap">
+  <h2>Measured results</h2>
+  <p class="lead">Five configurations, each run through an identical harness: 23 SSRF payloads + the full
+    kill chain + 100 legitimate requests. Every number comes straight from the automated output.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Config</th><th>Defences</th><th>SSRF blocked</th><th>Creds stolen</th><th>Records lost</th><th>Legit OK</th><th>Alerts</th></tr></thead>
+    <tbody>
+      <tr><td>C0</td><td>None</td><td class="bad">0 / 23</td><td class="bad">Yes</td><td class="bad">1000</td><td>100/100</td><td>2</td></tr>
+      <tr><td>C1</td><td>IMDSv2</td><td>14 / 23</td><td class="good">No</td><td class="good">0</td><td>100/100</td><td>0</td></tr>
+      <tr><td>C2</td><td>SSRF guard</td><td class="good">23 / 23</td><td class="good">No</td><td class="good">0</td><td>100/100</td><td>0</td></tr>
+      <tr><td>C3</td><td>Least priv.</td><td class="bad">0 / 23</td><td class="bad">Yes</td><td class="good">0</td><td>100/100</td><td>2</td></tr>
+      <tr><td>C4</td><td>All three</td><td class="good">23 / 23</td><td class="good">No</td><td class="good">0</td><td>100/100</td><td>0</td></tr>
+    </tbody>
+  </table></div>
+  <div class="charts">
+    <figure><img src="results/figures/fig_payload_outcomes.png" alt="Bar chart of SSRF payload outcomes per configuration" loading="lazy">
+      <figcaption>Outcome of the 23 SSRF payloads per configuration.</figcaption></figure>
+    <figure><img src="results/figures/fig_kill_chain.png" alt="Grid showing how far the attacker reaches in each configuration" loading="lazy">
+      <figcaption>How far the attacker reaches in each configuration.</figcaption></figure>
+  </div>
+</div></section>
+
+<section id="findings"><div class="wrap">
+  <h2>Key findings</h2>
+  <div class="finds">
+    <div class="find"><span class="dot" style="background:var(--red)">1</span><div><h4>No single control is enough</h4><p>IMDSv2 leaves internal &amp; loopback SSRF open (9/23 still hit); least privilege doesn't stop theft, only limits the damage.</p></div></div>
+    <div class="find"><span class="dot" style="background:var(--green)">2</span><div><h4>Fix the root cause</h4><p>The SSRF guard blocked 23/23 because it addresses the server-side fetch itself, not one target.</p></div></div>
+    <div class="find"><span class="dot" style="background:var(--teal)">3</span><div><h4>Defences are complementary</h4><p>D1 stops theft, D3 contains a leaked key, D4 detects misuse — together they cover the whole chain.</p></div></div>
+    <div class="find"><span class="dot" style="background:var(--gold)">4</span><div><h4>No cost to usability</h4><p>100/100 legitimate requests kept working in every configuration, with ~0.1&nbsp;ms median latency overhead.</p></div></div>
+  </div>
+</div></section>
+
+<section id="run"><div class="wrap">
+  <h2>Run it yourself</h2>
+  <p class="lead">Clone the repo and start the whole cloud locally with Docker (details in the README).</p>
+  <pre>git clone https://github.com/i9x0/cloud-ssrf-lab.git
+cd cloud-ssrf-lab
+python setup.py            <span style="color:#7c88b5"># lab keys + synthetic data</span>
+docker compose up -d       <span style="color:#7c88b5"># start the 8 services</span>
+docker compose run --rm attacker python attack_chain.py   <span style="color:#7c88b5"># live attack</span>
+python run_experiment.py   <span style="color:#7c88b5"># full evaluation</span></pre>
+  <div class="note"><b>Safety:</b> this lab is deliberately vulnerable and runs only inside isolated Docker
+    networks on one machine. All customer data is synthetic; all lab credentials are random and local.
+    Never expose it to the public Internet.</div>
+</div></section>
+
+<footer><div class="wrap">
+  <span class="authors">Jouf University · CS621 — Abdullah Alruwaili · Ahmed Alsaleh · Bassam Alruwaili</span>
+  <a class="ghbtn" href="https://github.com/i9x0/cloud-ssrf-lab" target="_blank" rel="noopener">github.com/i9x0/cloud-ssrf-lab</a>
+</div></footer>
+
+</body>
+</html>
