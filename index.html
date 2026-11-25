@@ -107,6 +107,8 @@
   .sbadge.err{background:rgba(240,93,93,.18);color:var(--red)}
   .resp pre{margin:0;white-space:pre-wrap;word-break:break-word;color:#c6d0f0;background:none;border:0;padding:0}
   .leak{color:var(--red);font-weight:700}
+  .spin{display:inline-block;width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
   /* attacker console */
   .runbtn{width:100%;background:var(--red);color:#fff;border:0;border-radius:10px;padding:13px;
@@ -223,7 +225,7 @@
       <div class="pbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
         &nbsp;Attacker console — full kill chain</div>
       <div class="pbody">
-        <button class="runbtn" onclick="runChain()">▶ Run full attack chain</button>
+        <button class="runbtn" id="runBtn" onclick="runChain()">▶ Run full attack chain</button>
         <div class="stats">
           <div class="stat"><div class="v" id="stCreds">—</div><div class="l">Credentials</div></div>
           <div class="stat"><div class="v" id="stRecords">—</div><div class="l">Records stolen</div></div>
@@ -372,9 +374,9 @@ function preset(a,b,c,d){
 function setUrl(u){document.getElementById('url').value=u; doFetch();}
 
 /* ---------- single fetch (LinkPeek) ---------- */
-function doFetch(){
-  var raw=document.getElementById('url').value.trim();
-  var r=serverFetch(raw); var el=document.getElementById('resp'); var h='';
+var reqSeq=0;
+function renderResp(r){
+  var el=document.getElementById('resp'); var h='';
   if(r.blocked){
     h='<div class="status"><span class="sbadge blk">BLOCKED</span> SSRF guard refused the request</div>'+
       '<pre>'+esc(r.reason)+'</pre>';
@@ -389,9 +391,25 @@ function doFetch(){
   }
   el.innerHTML=h;
 }
+function doFetch(){
+  var raw=document.getElementById('url').value.trim();
+  var el=document.getElementById('resp');
+  var my=++reqSeq;
+  var host=raw; try{host=new URL(raw).host||raw;}catch(e){}
+  el.innerHTML='<div class="status"><span class="spin"></span> <span class="c-mut">Fetching '+esc(host)+' …</span></div>';
+  setTimeout(function(){ if(my===reqSeq) renderResp(serverFetch(raw)); }, 420+Math.random()*480);
+}
 
 /* ---------- full kill chain ---------- */
+var chainRunning=false;
 function runChain(){
+  if(chainRunning) return; chainRunning=true;
+  var btn=document.getElementById('runBtn'); var old=btn.innerHTML; btn.disabled=true; btn.innerHTML='Running…';
+  document.getElementById('term').innerHTML='<span class="c-mut"><span class="spin"></span> $ docker compose run --rm attacker python attack_chain.py</span>';
+  document.getElementById('stCreds').innerHTML='…'; document.getElementById('stRecords').innerHTML='…'; document.getElementById('stAlerts').innerHTML='…';
+  setTimeout(function(){ chainRunning=false; btn.disabled=false; btn.innerHTML=old; chainCompute(); }, 750);
+}
+function chainCompute(){
   var term=document.getElementById('term'); var lines=[];
   function add(cls,txt){lines.push('<div class="ln '+cls+'">'+txt+'</div>');}
   add('c-mut','=== attack chain vs '+cfgLabel().id+' ===');
