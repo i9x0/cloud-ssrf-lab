@@ -228,9 +228,14 @@ notes(s, "أربعة دروس. أولاً: ولا حماية وحدها تكفي
 
 // ============================================================ 12. LIVE DEMO
 s = pres.addSlide(); s.background = { color: LIGHT };
-titleBar(s, "Public interactive demo", "Deliverable");
-imgCard(s, P("14_live_site.png"), 3.3, 1.45, 6.7, 5.45, "Live at cloud-ssrf-lab-aws.vercel.app — toggle the four defences and run the attack in the browser");
-notes(s, "وهذا الموقع التفاعلي المنشور: المستخدم يفعّل ويطفّي الحمايات الأربع ويشغّل الهجوم مباشرة في المتصفح، والنتائج تطابق المختبر. الرابط: cloud-ssrf-lab-aws.vercel.app");
+titleBar(s, "Public interactive demo — the attack, live", "Deliverable");
+s.addText("Same website, two clicks: disable the defences and the attack steals 1,000 records; enable them and it is blocked.", { x: 0.6, y: 1.35, w: 12.1, h: 0.45, fontFace: BODY, fontSize: 15, color: INK, isTextBox: true, margin: 0 });
+chip(s, "No defences (C0)  ·  1,000 records stolen", 0.5, 2.0, 6.15, RED);
+chip(s, "All defences (C4)  ·  blocked, 0 records", 6.7, 2.0, 6.15, GREEN);
+imgCard(s, P("15_demo_attack.png"), 0.5, 2.65, 6.15, 3.9, "LinkPeek leaks the credentials; the attacker console downloads 1,000 records");
+imgCard(s, P("16_demo_blocked.png"), 6.7, 2.65, 6.15, 3.9, "The SSRF guard blocks the request at step 2 — 0 credentials, 0 records");
+s.addText("cloud-ssrf-lab-aws.vercel.app", { x: 0.6, y: 7.0, w: 12.1, h: 0.35, fontFace: "Consolas", fontSize: 13, bold: true, color: ACCENT, align: "center", isTextBox: true, margin: 0 });
+notes(s, "وهذا الموقع التفاعلي المنشور وهو يشتغل: على اليسار بدون حماية — المفاتيح تتسرب ويُسرق ألف سجل. على اليمين بتفعيل الحمايات الأربع — الطلب ينحجب وصفر سجل. المستخدم يجرّب بنفسه بضغطة. الرابط: cloud-ssrf-lab-aws.vercel.app");
 
 // ============================================================ 13. CONCLUSION + contributions
 s = pres.addSlide(); s.background = { color: HERO };
