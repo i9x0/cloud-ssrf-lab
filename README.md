@@ -21,12 +21,14 @@ Networks: `internet` 203.0.113.0/24 (TEST-NET-3), `vpc` 10.0.1.0/24, `imds-link`
 
 ## Defences
 
-| ID | Defence | Switch |
-|---|---|---|
-| D1 | IMDSv2 enforced (session token required) | `IMDS_MODE=required` |
-| D2 | Application SSRF guard (scheme/port allow-list, resolve-then-block private ranges, re-validate redirects, IP pinning) | `SSRF_GUARD=on` |
-| D3 | Least-privilege instance role (only `Write:app-uploads`) | `IAM_POLICY=leastprivilege` |
-| D4 | Credential-exfiltration detector (always on) | — |
+| ID | Defence | Enable (ON) | Disable (OFF) |
+|---|---|---|---|
+| D1 | IMDSv2 enforced (session token required) | `IMDS_MODE=required` | `IMDS_MODE=optional` |
+| D2 | Application SSRF guard (scheme/port allow-list, resolve-then-block private ranges, re-validate redirects, IP pinning) | `SSRF_GUARD=on` | `SSRF_GUARD=off` |
+| D3 | Least-privilege instance role (only `Write:app-uploads`) | `IAM_POLICY=leastprivilege` | `IAM_POLICY=overprivileged` |
+| D4 | Credential-exfiltration detector | always on | — |
+
+The "OFF" value of each switch is also its default, so a plain `docker compose up -d` starts the fully vulnerable baseline (all defences disabled).
 
 ## Run it (Windows PowerShell, Docker Desktop running)
 
@@ -40,11 +42,44 @@ python capture_screenshots.py      # report screenshots -> results/screenshots/
 docker compose down                # stop (add -v to wipe storage)
 ```
 
-Switch a defence manually, for example IMDSv2:
+## Enable / disable the defences
+
+Each defence is a Docker Compose environment variable. Set it, then re-apply with
+`docker compose up -d` (Compose recreates only the affected containers). On Windows PowerShell:
+
+**Enable a single defence**
 
 ```powershell
-$env:IMDS_MODE="required"; docker compose up -d
+$env:IMDS_MODE="required";          docker compose up -d   # D1 ON
+$env:SSRF_GUARD="on";               docker compose up -d   # D2 ON
+$env:IAM_POLICY="leastprivilege";   docker compose up -d   # D3 ON
 ```
+
+**Disable a single defence** (turn it off again)
+
+```powershell
+$env:IMDS_MODE="optional";          docker compose up -d   # D1 OFF
+$env:SSRF_GUARD="off";              docker compose up -d   # D2 OFF
+$env:IAM_POLICY="overprivileged";   docker compose up -d   # D3 OFF
+```
+
+**Enable ALL defences (hardened — defence in depth)**
+
+```powershell
+$env:IMDS_MODE="required"; $env:SSRF_GUARD="on"; $env:IAM_POLICY="leastprivilege"; docker compose up -d
+```
+
+**Disable ALL defences (reset to the vulnerable baseline)**
+
+```powershell
+$env:IMDS_MODE="optional"; $env:SSRF_GUARD="off"; $env:IAM_POLICY="overprivileged"; docker compose up -d
+```
+
+> Tip: these variables persist only in the current PowerShell window. Close it (or run
+> `Remove-Item Env:IMDS_MODE,Env:SSRF_GUARD,Env:IAM_POLICY`) and the next `docker compose up -d`
+> is back to the vulnerable baseline, since OFF is each switch's default.
+
+On Linux/macOS (bash) the same toggles are inline, e.g. `SSRF_GUARD=on docker compose up -d`.
 
 ## Results (run of 2026-11-20)
 
