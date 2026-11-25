@@ -362,6 +362,7 @@ function sync(){
   document.getElementById('cfgPill').textContent=c.id;
   var op=document.getElementById('outcomePill'); op.textContent=c.txt;
   op.className="pill "+(c.safe?"safe":"danger");
+  doFetch();
 }
 function preset(a,b,c,d){
   document.getElementById('d1').checked=!!a; document.getElementById('d2').checked=!!b;
